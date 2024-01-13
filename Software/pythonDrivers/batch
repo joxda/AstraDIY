@@ -1,0 +1,15 @@
+#!/bin/env bash
+
+sudo chronyc sources
+sudo chronyc sourcestats
+
+echo
+echo "========1 Wire==========="
+cd 1wire
+./collect1wire.py
+echo "========================="
+echo "========bme280==========="
+cd ..
+./bme280_lib.py
+echo "========================="
+
