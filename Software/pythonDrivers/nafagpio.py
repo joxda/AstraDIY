@@ -28,15 +28,17 @@ for chip in gpiod.ChipIter():
 	#chip.close()
 		
 chip=gpiod.Chip('gpiochip4')
-listgpio=(22, 23, 17, 18 )
-listpin=(15, 16, 11, 12 )
+#chip=gpiod.Chip('gpiochip1')
+#listgpio=(22, 23, 17, 18 )
+#listpin=(15, 16, 11, 12 )
+listgpio=(26, 20, 21 )
+listpin=(37, 38, 40 )
 list=listpin
 listlines=[]
 for i in list:
 	gpio="PIN{:d}".format(i)
 	print("Opening Gpio:", gpio)
 	line = gpiod.find_line(gpio)
-	#line = gpiod.find_line('PIN22')
 	if line == None:
 		gpio="PIN{:d}".format(i)
 		print("Opening Gpio:", gpio)
@@ -45,6 +47,8 @@ for i in list:
 	if line == None:
 		print("Not Found")
 		exit(1)
+	print(line.offset())
+	#lines = chip.get_lines([line.offset()])
 	lines = chip.get_lines([line.offset()])
 	lines.request(consumer='foobar', type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
 	listlines.append(lines)

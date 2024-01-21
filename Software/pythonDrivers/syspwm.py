@@ -50,9 +50,12 @@ class SysPWM(object):
 		return os.path.isdir(self.pwmdir)
 
 	def echo(self,m,fil):
-		#print "echo {m} > {fil}".format(m=m,fil=fil)
-		with open(fil,'w') as f:
-			f.write("{m}\n".format(m=m))
+		try:
+			#print "echo {m} > {fil}".format(m=m,fil=fil)
+			with open(fil,'w') as f:
+				f.write("{m}\n".format(m=m))
+		except Exception as e:
+			print("Uable to open ", fil, " Exception ",str(e))
 
 
 	def create_pwmX(self):
@@ -117,8 +120,8 @@ if __name__ == "__main__":
 	from time import sleep
 	import atexit
 	SLEE=1
-	periode1=200
-	periode2=100
+	periode1=20
+	periode2=10
 	duty1=0
 	duty2=periode2
 
@@ -126,18 +129,18 @@ if __name__ == "__main__":
 	
 	# OK 18, 13
 	pwm = SysPWM(2,1)
-	if pwm.get_periode_ms() != 0:
-		pwm.set_duty_us(0)
-	pwm.set_periode_us(periode1)
-	pwm.set_duty_us(duty1)
+	#if pwm.get_periode_ms() != 0:
+	pwm.set_duty_ms(0)
+	pwm.set_periode_ms(periode1)
+	pwm.set_duty_ms(duty1)
 	atexit.register(pwm.disable)
 	pwm.enable()
 
 	pwm1 = SysPWM(2,2)
-	if pwm1.get_periode_ms() != 0:
-		pwm1.set_duty_us(0)
-	pwm1.set_periode_us(periode2)
-	pwm1.set_duty_us(duty2)
+	#if pwm1.get_periode_ms() != 0:
+	pwm1.set_duty_ms(0)
+	pwm1.set_periode_ms(periode2)
+	pwm1.set_duty_ms(duty2)
 	atexit.register(pwm1.disable)
 	pwm1.enable()
 
@@ -145,12 +148,12 @@ if __name__ == "__main__":
 		duty1 = (duty1 + 1)
 		if duty1 > periode1:
 			duty1=0
-		print("Duty1:",duty1, "us", "period=",periode1,"us")
-		pwm.set_duty_us(duty1)
+		print("Duty1:",duty1, "ms", "period=",periode1,"ms")
+		pwm.set_duty_ms(duty1)
 		duty2 = (duty2 - 1)
 		if duty2 < 0:
 			duty2=periode2
-		print("Duty2:",duty2, "us", "period=",periode2,"us")
-		pwm1.set_duty_us(duty2)
+		print("Duty2:",duty2, "ms", "period=",periode2,"ms")
+		pwm1.set_duty_ms(duty2)
 		sleep(SLEE)
 	sleep(1000000)
