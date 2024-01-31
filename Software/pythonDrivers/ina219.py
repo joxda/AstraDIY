@@ -9,22 +9,22 @@ from math import trunc
 import smbus
 
 class I2C:
-    def __init__(address, busnum):
+    def __init__(self, address, busnum):
         self.busnum=busnum
         self.address=address
         self.bus=smbus.SMBus(self.busnum)
 
     def writeList(self, register, register_bytes):
         """Write bytes to the specified register."""
-        self.bus.write_block_data(self.address, register, register_bytes)
-        print("Wrote to register 0x%02X: %s", register, register_bytes)
+        #print(f"Wrote to 0x%02X register 0x%02X: %s" % (self.address, register, register_bytes))
+        self.bus.write_i2c_block_data(self.address, register, register_bytes)
 
     def readU16(self, register, little_endian=True):
         """Read an unsigned 16-bit value from the specified register, with the
         specified endianness (default little endian, or least significant byte
         first)."""
-        result = self.bus.read_word(self.address, register) & 0xFFFF
-        print("Read 0x%04X from register pair 0x%02X, 0x%02X", result, register, register+1)
+        result = self.bus.read_word_data(self.address, register) & 0xFFFF
+        #print("Read 0x%04X from register pair 0x%02X, 0x%02X" % (result, register, register+1))
         # Swap bytes if using big endian because read_word_data assumes little
         # endian on ARM (little endian) systems.
         if not little_endian:
@@ -49,6 +49,12 @@ class I2C:
         """Read an unsigned 16-bit value from the specified register, in little
         endian byte order."""
         return self.readU16(register, little_endian=True)
+    
+    def readU16BE(self, register):
+        """Read an unsigned 16-bit value from the specified register, in big
+        endian byte order."""
+        return self.readU16(register, little_endian=False)
+
 
 class INA219:
     """Class containing the INA219 functionality."""
@@ -157,7 +163,7 @@ class INA219:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(log_level)
 
-        self._i2c = I2C(address=address, busnum=busnum)
+        self._i2c = I2C(address, busnum)
         self._shunt_ohms = shunt_ohms
         self._max_expected_amps = max_expected_amps
         self._min_device_current_lsb = self._calculate_min_current_lsb()
