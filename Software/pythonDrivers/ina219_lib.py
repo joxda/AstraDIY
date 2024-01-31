@@ -25,8 +25,7 @@ if __name__ == "__main__":
         ina219_set[name]["ina219_object"] = INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
         ina219_set[name]["ina219_object"].configure()
 
-    while True:
-        for name, info in ina219_set.items():
+    for name, info in ina219_set.items():
             ina219 = info["ina219_object"]
             shunt_voltage = ina219.shunt_voltage()
             bus_voltage = ina219.voltage()
@@ -39,5 +38,4 @@ if __name__ == "__main__":
             print(f"  Current: {current:.3f} A")
             print(f"  Power: {power:.3f} mW")
             print("")
-        time.sleep(1)
 
