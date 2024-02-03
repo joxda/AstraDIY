@@ -1,8 +1,14 @@
 #!/bin/env bash
 
+echo
+echo "========Chrony sources==========="
 sudo chronyc sources
+echo
+echo "========Chrony sources stats==========="
 sudo chronyc sourcestats
-
+echo
+echo "========Chrony offsets==========="
+./survDateOffset.py
 echo
 echo "========1 Wire==========="
 cd 1wire
@@ -10,6 +16,6 @@ cd 1wire
 echo "========================="
 echo "========bme280==========="
 cd ..
-./bme280_lib.py
+#./bme280_lib.py
 echo "========================="
 
