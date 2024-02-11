@@ -4,24 +4,15 @@ import random
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
 from ina219 import INA219
+from AstraGpio import AstraGpio  
 
 
-class TriggerManager:
-    def __init__(self):
-        self.triggered = False
-
-    def set_triggered(self, state):
-        self.triggered = state
-
-    def is_triggered(self):
-        return self.triggered
-
-
-class Widget(QWidget):
-    def __init__(self, name, ina219):
+class GpioControl(QWidget):
+    def __init__(self, name, ina219, pin):
         super().__init__()
         self.name=name
         self.ina219=ina219
+        self.gpio = AstraGpio(pin)
         self.initUI()
 
     def initUI(self):
@@ -31,6 +22,7 @@ class Widget(QWidget):
 
         # Bouton On/Off
         self.toggle_button = QPushButton('Off', self)
+        self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
@@ -54,15 +46,17 @@ class Widget(QWidget):
         layout.addWidget(self.text_edit3)
         self.setLayout(layout)
 
-    def toggle_action(self):
-        if self.toggle_button.isChecked():
-            self.toggle_button.setText('On')
-            # Code à exécuter lorsque le bouton est activé
-            print("Le bouton est activé.")
+    def set_togglebuttonText(self):
+        if self.gpio.is_on():
+            self.toggle_button.setText('Set Off')
         else:
-            self.toggle_button.setText('Off')
-            # Code à exécuter lorsque le bouton est désactivé
-            print("Le bouton est désactivé.")
+            self.toggle_button.setText('Set On')
+
+
+    def toggle_action(self):
+        self.gpio.switch_onoff()
+        self.set_togglebuttonText()
+        self.gpio.print_status()
 
     def update_text_fields(self):
         shunt_voltage = self.ina219.shunt_voltage()
@@ -71,24 +65,23 @@ class Widget(QWidget):
         power = self.ina219.power()
 
         # Mettre à jour les champs texte avec des valeurs aléatoires
-        self.text_edit1.setText(f"Bus {bus_voltage:+.3f}V")
-        self.text_edit2.setText(f"Current: {current:+.3f}A")
-        self.text_edit3.setText(f"{power:.3f}mW")
+        self.text_edit1.setText(f"Bus {bus_voltage:+.1f}V")
+        self.text_edit2.setText(f"Current: {current:+.1f}mA")
+        self.text_edit3.setText(f"{power:.1f}mW")
 
 
 if __name__ == '__main__':
     # Dictionnaire associant les noms aux informations sur les capteurs INA219
     ina219_set = {
-            "alim_1_i2c_41   ": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37, "gpio": 26},
-        "alim_2_i2c_44   ": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38, "gpio": 20},
-        "alim_3_i2c_45_5V": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40, "gpio": 21},
-        #"alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
-        #"alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
+            "alim_1_i2c_41   ": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37},
+            "alim_2_i2c_44   ": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38},
+            "alim_3_i2c_45_5V": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40},
+            #"alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
+            #"alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
     }
 
 
     app = QApplication(sys.argv)
-    trigger_manager = TriggerManager()
     main_window = QWidget()
     main_layout = QVBoxLayout()
 
@@ -104,7 +97,7 @@ if __name__ == '__main__':
         max_expected_amps = info["max_expected_amps"]
         ina219_set[name]["ina219_object"] = INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
         ina219_set[name]["ina219_object"].configure()
-        ina219_set[name]["ina219_wiget"]=Widget(name,ina219_set[name]["ina219_object"])
+        ina219_set[name]["ina219_wiget"]=GpioControl(name,ina219_set[name]["ina219_object"], pin=ina219_set[name]["pin"])
         widgets.append(ina219_set[name]["ina219_wiget"])
         main_layout.addWidget(ina219_set[name]["ina219_wiget"])
 
@@ -118,6 +111,5 @@ if __name__ == '__main__':
     timer = QTimer()
     timer.timeout.connect(lambda: [widget.update_text_fields() for widget in widgets])
     timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
-    trigger_manager.set_triggered(True)
     sys.exit(app.exec_())
 
