@@ -4,15 +4,14 @@ import random
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
 from ina219 import INA219
-from AstraGpio import AstraGpio  
+from AstraGpio import AstraGpio
 
 
 class GpioControl(QWidget):
-    def __init__(self, name, ina219, pin):
+    def __init__(self, name):
         super().__init__()
         self.name=name
-        self.ina219=ina219
-        self.gpio = AstraGpio(pin)
+        self.gpio = AstraGpio(name)
         self.initUI()
 
     def initUI(self):
@@ -59,10 +58,10 @@ class GpioControl(QWidget):
         self.gpio.print_status()
 
     def update_text_fields(self):
-        shunt_voltage = self.ina219.shunt_voltage()
-        bus_voltage = self.ina219.voltage()
-        current = self.ina219.current()
-        power = self.ina219.power()
+        shunt_voltage = self.gpio.shunt_voltage()
+        bus_voltage = self.gpio.voltage()
+        current = self.gpio.current()
+        power = self.gpio.power()
 
         # Mettre à jour les champs texte avec des valeurs aléatoires
         self.text_edit1.setText(f"Bus {bus_voltage:+.1f}V")
@@ -72,13 +71,8 @@ class GpioControl(QWidget):
 
 if __name__ == '__main__':
     # Dictionnaire associant les noms aux informations sur les capteurs INA219
-    ina219_set = {
-            "alim_1_i2c_41   ": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37},
-            "alim_2_i2c_44   ": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38},
-            "alim_3_i2c_45_5V": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40},
-            #"alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
-            #"alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
-    }
+    #"alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
+    #"alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
 
 
     app = QApplication(sys.argv)
@@ -90,16 +84,10 @@ if __name__ == '__main__':
     main_layout.addWidget(title_widget)
 
     widgets = []
-    for name, info in ina219_set.items():
-        address = info["address"]
-        shunt_ohms = info["shunt_ohms"]
-        max_expected_amps = info["max_expected_amps"]
-        max_expected_amps = info["max_expected_amps"]
-        ina219_set[name]["ina219_object"] = INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
-        ina219_set[name]["ina219_object"].configure()
-        ina219_set[name]["ina219_wiget"]=GpioControl(name,ina219_set[name]["ina219_object"], pin=ina219_set[name]["pin"])
-        widgets.append(ina219_set[name]["ina219_wiget"])
-        main_layout.addWidget(ina219_set[name]["ina219_wiget"])
+    for name in ["dc1", "dc2", "dc3"]:
+        wiget=GpioControl(name)
+        widgets.append(wiget)
+        main_layout.addWidget(wiget)
 
 
     main_window.setLayout(main_layout)
