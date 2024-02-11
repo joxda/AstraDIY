@@ -10,13 +10,13 @@ import time
 from ina219 import INA219
 
 astraGpioSet = { 
-                "dc1": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37},
-                "dc2": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38},
-                "dc3": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40},
+                "AstraDc1": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37},
+                "AstraDc2": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38},
+                "AstraDc3": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40},
 }
 pin2gpio = { 37:26, 38:20, 40:21}
 
-class AstraGpio(INA219):
+class AstraGpio():
     def __init__(self, name):
         self.name = name
         self.inacaract={}

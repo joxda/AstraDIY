@@ -84,7 +84,7 @@ if __name__ == '__main__':
     main_layout.addWidget(title_widget)
 
     widgets = []
-    for name in ["dc1", "dc2", "dc3"]:
+    for name in ["AstraDc1", "AstraDc2", "AstraDc3"]:
         wiget=GpioControl(name)
         widgets.append(wiget)
         main_layout.addWidget(wiget)
