@@ -31,6 +31,7 @@ class AstraPwm():
         self.pwm =  SysPWM(self.inacaract["chip"],self.inacaract["pwm"])
         self.pwm.set_duty_ms(0)
         self.pwm.set_periode_ms(100)
+        print("Init OK")
 
     def current(self):
         return self.ina219.current()
@@ -60,7 +61,8 @@ class AstraPwm():
         elif intratio > 100:
             intratio = 100
         self.ratio=intratio
-        self.pwm.set_periode_ms(self.ratio)
+        print("Ratio:",self.ratio) 
+        self.pwm.set_duty_ms(self.ratio)
 
     def get_ratio(self):
         return self.ratio
@@ -74,6 +76,7 @@ if __name__ == '__main__':
     while True:
         astrapwm1.set_ratio(duty)
         astrapwm2.set_ratio(100-duty)
+        duty=(duty+1)%101
         time.sleep(1)
     
 
