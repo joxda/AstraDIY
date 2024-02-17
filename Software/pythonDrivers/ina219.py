@@ -500,7 +500,7 @@ if __name__ == "__main__":
         shunt_ohms = info["shunt_ohms"]
         max_expected_amps = info["max_expected_amps"]
         ina219_set[name]["ina219_object"] = INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
-        ina219_set[name]["ina219_object"].configure()
+        ina219_set[name]["ina219_object"].configure(bus_adc=INA219.ADC_64SAMP, shunt_adc=INA219.ADC_64SAMP)
 
     for name, info in ina219_set.items():
             ina219 = info["ina219_object"]

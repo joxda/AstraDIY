@@ -2,10 +2,88 @@
 import sys
 import random
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFrame
+from PyQt5.QtCore import Qt
 from ina219 import INA219
 from AstraGpio import AstraGpio
+from AstraPwm import AstraPwm
 
+
+class dataMenu(QWidget):
+    def __init__(self, unit):
+        self.unit=unit
+        super().__init__()
+        self.initUI()
+        self.unit=unit
+
+    def initUI(self):
+        self.line_edit = QLineEdit(self)
+        #self.line_edit.setInputMask('9999')  # Limite les caractères à des chiffres uniquement
+        #self.line_edit.setFixedHeight(50)
+
+        self.unit_label = QLabel(self.unit, self)  
+        self.unit_label.setAlignment(Qt.AlignCenter)
+        #self.unit_label.setFixedHeight(50)
+
+        # Mettre le QLabel et le QLineEdit dans un QHBoxLayout pour les aligner horizontalement
+        layout = QHBoxLayout()
+        layout.addWidget(self.line_edit)
+        layout.addWidget(self.unit_label)
+        layout.setSpacing(0)
+        self.setLayout(layout)
+
+    def setText(self, value):
+        self.line_edit.setText(value)
+
+    def setFixedWidth(self, width):
+        self.line_edit.setFixedWidth(width)
+        self.unit_label.setFixedWidth(width)
+
+    def setReadOnly(self, mybool):
+        self.line_edit.setReadOnly(mybool)
+
+
+
+class ina219Frame(QFrame):
+    def __init__(self, ina219):
+        super().__init__()
+        self.ina219 = ina219
+        self.initUI()
+        
+    def initUI(self):
+        # Voltage
+        self.textVoltage = dataMenu("V")
+        self.textVoltage.setFixedWidth(50)
+        self.textVoltage.setReadOnly(True)
+
+        # Current 
+        self.textCurrent = dataMenu("mA")
+        self.textCurrent.setFixedWidth(50)
+        self.textCurrent.setReadOnly(True)
+
+        # PowerQT
+        self.textPower = dataMenu("mW")
+        self.textPower.setFixedWidth(50)
+        self.textPower.setReadOnly(True)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.textVoltage)
+        layout.addWidget(self.textCurrent)
+        layout.addWidget(self.textPower)
+        layout.setSpacing(1)
+        self.setLayout(layout)
+        self.setFixedSize(120, 130)
+
+    def update_text_fields(self):
+        shunt_voltage = self.ina219.shunt_voltage()
+        bus_voltage = self.ina219.voltage()
+        current = self.ina219.current()
+        power = self.ina219.power()
+
+        # Mettre à jour les champs texte avec des valeurs aléatoires
+        self.textVoltage.setText(f"{bus_voltage:+.1f}")
+        self.textCurrent.setText(f"{current:+.1f}")
+        self.textPower.setText(f"{power:.1f}")
 
 class GpioControl(QWidget):
     def __init__(self, name):
@@ -16,40 +94,31 @@ class GpioControl(QWidget):
 
     def initUI(self):
         # Zone de texte initiale
-        self.initial_text = QLineEdit(self.name, self)
-        self.initial_text.setReadOnly(True)
+        self.TextName = QLineEdit(self.name, self)
+        self.TextName.setReadOnly(True)
+        self.TextName.setFixedWidth(100)
 
         # Bouton On/Off
-        self.toggle_button = QPushButton('Off', self)
+        self.toggle_button = QPushButton(self.name+' is Off set On', self)
         self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
-        # Zones de texte
-        self.text_edit1 = QLineEdit(self)
-        self.text_edit2 = QLineEdit(self)
-        self.text_edit3 = QLineEdit(self)
-
-        # Définir une largeur fixe pour les zones de texte
-        self.initial_text.setFixedWidth(200)
-        self.text_edit1.setFixedWidth(200)
-        self.text_edit2.setFixedWidth(200)
-        self.text_edit3.setFixedWidth(200)
-        
+        # InaFrame
+        self.inaFrame = ina219Frame(self.gpio)
+      
         # Layout
         layout = QHBoxLayout()
-        layout.addWidget(self.initial_text)
+        layout.addWidget(self.TextName)
         layout.addWidget(self.toggle_button)
-        layout.addWidget(self.text_edit1)
-        layout.addWidget(self.text_edit2)
-        layout.addWidget(self.text_edit3)
+        layout.addWidget(self.inaFrame)
         self.setLayout(layout)
 
     def set_togglebuttonText(self):
         if self.gpio.is_on():
-            self.toggle_button.setText('Set Off')
+            self.toggle_button.setText(self.name+' is On Set Off')
         else:
-            self.toggle_button.setText('Set On')
+            self.toggle_button.setText(self.name+' is Off Set On')
 
 
     def toggle_action(self):
@@ -58,23 +127,65 @@ class GpioControl(QWidget):
         self.gpio.print_status()
 
     def update_text_fields(self):
-        shunt_voltage = self.gpio.shunt_voltage()
-        bus_voltage = self.gpio.voltage()
-        current = self.gpio.current()
-        power = self.gpio.power()
+        self.inaFrame.update_text_fields()
 
-        # Mettre à jour les champs texte avec des valeurs aléatoires
-        self.text_edit1.setText(f"Bus {bus_voltage:+.1f}V")
-        self.text_edit2.setText(f"Current: {current:+.1f}mA")
-        self.text_edit3.setText(f"{power:.1f}mW")
 
+class DrewControl(QWidget):
+    def __init__(self, name):
+        super().__init__()
+        self.name=name
+        self.buttonOn=True
+        self.AstraDrew = AstraPwm(name)
+        self.initUI()
+
+    def initUI(self):
+
+        # Button 
+        self.toggle_button = QPushButton(self.name+' Off', self)
+        self.set_togglebuttonText()
+        self.toggle_button.setCheckable(True)
+        self.toggle_button.clicked.connect(self.toggle_action)
+
+        # Power
+        self.textPower = dataMenu("%")
+        self.textPower.setFixedWidth(60)
+        self.textPower.setReadOnly(True)
+        
+        # Power
+        self.textTempConsigne = dataMenu("°C")
+        self.textTempConsigne.setFixedWidth(30)
+        self.textTempConsigne.setReadOnly(False)
+        self.textTempConsigne.setText("10")
+         # InaFrame
+        self.inaFrame = ina219Frame(self.AstraDrew)
+       
+        # Layout
+        layout = QHBoxLayout()
+        layout.addWidget(self.toggle_button)        
+        layout.addWidget(self.textPower)        
+        layout.addWidget(self.textTempConsigne)        
+        layout.addWidget(self.inaFrame)
+        self.setLayout(layout)
+
+    def set_togglebuttonText(self):
+        if self.buttonOn:
+            self.toggle_button.setText(self.name+' is On Set Off')
+            self.toggle_button.setStyleSheet("background-color: green")
+        else:
+            self.toggle_button.setText(self.name+' is Off Set On')
+            self.toggle_button.setStyleSheet("background-color: green")
+
+
+    def toggle_action(self):
+        self.buttonOn = not(self.buttonOn)
+        self.set_togglebuttonText()
+
+    def update_text_fields(self):
+        ratio=self.AstraDrew.get_ratio()
+        self.inaFrame.update_text_fields()
+        self.textPower.setText(str(int(ratio)))
 
 if __name__ == '__main__':
-    # Dictionnaire associant les noms aux informations sur les capteurs INA219
-    #"alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
-    #"alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
-
-
     app = QApplication(sys.argv)
     main_window = QWidget()
     main_layout = QVBoxLayout()
@@ -86,6 +197,11 @@ if __name__ == '__main__':
     widgets = []
     for name in ["AstraDc1", "AstraDc2", "AstraDc3"]:
         wiget=GpioControl(name)
+        widgets.append(wiget)
+        main_layout.addWidget(wiget)
+        
+    for name in ["AstraPwm1", "AstraPwm2"]:
+        wiget=DrewControl(name)
         widgets.append(wiget)
         main_layout.addWidget(wiget)
 
