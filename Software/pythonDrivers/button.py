@@ -51,6 +51,8 @@ class ina219Frame(QFrame):
         self.initUI()
         
     def initUI(self):
+        self.setStyleSheet("border: 1px solid black;") 
+        
         # Voltage
         self.textVoltage = dataMenu("V")
         self.textVoltage.setFixedWidth(50)
@@ -93,19 +95,23 @@ class GpioControl(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.setStyleSheet("border: 1px solid black;") 
+        
         # Zone de texte initiale
-        self.TextName = QLineEdit(self.name, self)
-        self.TextName.setReadOnly(True)
+        self.TextName = QLabel(self.name, self)
+        #self.TextName.setReadOnly(True)
         self.TextName.setFixedWidth(100)
 
         # Bouton On/Off
-        self.toggle_button = QPushButton(self.name+' is Off set On', self)
+        self.toggle_button = QPushButton('Off set On', self)
+        self.toggle_button.setFixedWidth(150)
+        self.toggle_button.setStyleSheet("border: 1px solid black;") 
         self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
         # InaFrame
-        self.inaFrame = ina219Frame(self.gpio)
+        self.inaFrame = ina219Frame(self.gpio.get_ina219())
       
         # Layout
         layout = QHBoxLayout()
@@ -116,9 +122,11 @@ class GpioControl(QWidget):
 
     def set_togglebuttonText(self):
         if self.gpio.is_on():
-            self.toggle_button.setText(self.name+' is On Set Off')
+            self.toggle_button.setText('On Set Off')
+            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;") 
         else:
-            self.toggle_button.setText(self.name+' is Off Set On')
+            self.toggle_button.setText('Off Set On')
+            self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;") 
 
 
     def toggle_action(self):
@@ -157,7 +165,7 @@ class DrewControl(QWidget):
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.setText("10")
          # InaFrame
-        self.inaFrame = ina219Frame(self.AstraDrew)
+        self.inaFrame = ina219Frame(self.AstraDrew.get_ina219())
        
         # Layout
         layout = QHBoxLayout()

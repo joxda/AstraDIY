@@ -14,7 +14,7 @@ astraGpioSet = {
                 "AstraPwm2": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":2}
 }
 
-class AstraPwm(INA219):
+class AstraPwm():
     def __init__(self, name, MinTemp=-10, MaxTemp=20):
         self.name = name
         if name in astraGpioSet :
@@ -25,16 +25,19 @@ class AstraPwm(INA219):
         shunt_ohms = self.inacaract["shunt_ohms"]
         max_expected_amps = self.inacaract["max_expected_amps"]
         max_expected_amps = self.inacaract["max_expected_amps"]
-        super().__init__(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
 
-        
+        self.ina219=INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
+         
         self.ratio=0
         self.period_ms=1.0
          
-        self.pwm =  SysPWM(self.inacaract["chip"],self.inacaract["pwm"])
+        self.pwm = SysPWM(self.inacaract["chip"],self.inacaract["pwm"])
         self.pwm.set_duty_ms(0)
         self.pwm.set_periode_ms(self.period_ms)
-        self.configure()
+        self.ina219.configure()
+
+    def get_ina219(self):
+        return self.ina219
 
     def print_status(self):
         print(self.name,":", self.ratio, "=>", self.voltage(), "V", self.current(), "mA")

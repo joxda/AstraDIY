@@ -47,20 +47,11 @@ class AstraGpio():
             self.gpioline.set_direction_output()
         self.ina219.configure()
 
-    def current(self):
-        return self.ina219.current()
-
-    def shunt_voltage(self):
-        return self.ina219.shunt_voltage()
-
-    def voltage(self):
-        return self.ina219.voltage()
-
-    def power(self):
-        return self.ina219.power()
+    def get_ina219(self):
+        return self.ina219
 
     def print_status(self):
-        print(self.name,":",self.gpioline.name(), ":", self.gpioline.get_value(), "=>", self.voltage(), "V", self.current(), "mA")
+        print(self.name,":",self.gpioline.name(), ":", self.gpioline.get_value(), "=>", self.ina219.voltage(), "V", self.ina219.current(), "mA")
 
     def get_name(self):
         return self.gpioline.name()
