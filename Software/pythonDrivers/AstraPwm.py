@@ -3,7 +3,8 @@
 
 from ina219 import INA219
 from syspwm import SysPWM
-
+import glob
+import os
 import time
 
 
@@ -35,12 +36,50 @@ class AstraPwm():
         self.pwm.set_duty_ms(0)
         self.pwm.set_periode_ms(self.period_ms)
         self.ina219.configure()
+        self.tempBaseDir = '/sys/bus/w1/devices/'        
+        self.tempFile = ''
+
+    def get_listTemp(self):
+        listname=[]
+        for path in glob.glob(self.tempBaseDir + '28*'):
+            name=os.path.basename(path)
+            listname.append(name)
+        return listname
+
+    def set_associateTemp(self, name):
+        self.tempFile=self.tempBaseDir+name+"/w1_slave"
+        if os.access(self.tempFile, os.R_OK):
+            return True
+        else:
+            return False
+        
+    def _read_temp(self, path): 
+        f = open(path, 'r')
+        lines = f.readlines()
+        f.close()
+        return lines
+
+    def get_temp(self):
+        lines = self._read_temp(self.tempFile)
+        retries = 5
+        while (lines[0].strip()[-3:] != 'YES') and (retries > 0):
+            time.sleep(0.1)
+            lines = self._read_temp(self.tempFile)
+            retries -= 1
+        if retries == 0:
+            return 998
+        equals_pos = lines[1].find('t=')
+        if equals_pos != -1:
+            temp = lines[1][equals_pos + 2:]
+            return float(temp) / 1000
+        else:
+            return 999 # error
 
     def get_ina219(self):
         return self.ina219
 
     def print_status(self):
-        print(self.name,":", self.ratio, "=>", self.voltage(), "V", self.current(), "mA")
+        print(self.name,":", self.ratio, "=>", self.ina219.voltage(), "V", self.ina219.current(), "mA")
 
     def get_name(self):
         return self.gpioline.name()
@@ -79,6 +118,9 @@ if __name__ == '__main__':
         astrapwm1.print_status()
         astrapwm2.set_ratio(100-duty)
         astrapwm2.print_status()
+        for name in astrapwm2.get_listTemp():
+            astrapwm2.set_associateTemp(name)
+            print(name,"=", astrapwm2.get_temp())
         #duty=(duty+1)%101
         time.sleep(1)
     

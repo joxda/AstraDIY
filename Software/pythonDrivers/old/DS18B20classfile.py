@@ -3,6 +3,7 @@ import os
 import glob
 import time
 
+
 class DS18B20:
 	def __init__(self):
 		#os.system('modprobe w1-gpio')
@@ -50,6 +51,28 @@ class DS18B20:
 	def device_count(self):
 		return self._count_devices
 
+if __name__ == "__main__":
+    degree_sign = u'\xb0' # degree sign
+    devices = DS18B20()
+    count = devices.device_count()
+    names = devices.device_names()
 
+    i = 0
+    while i < count:
+        retry=3
+        while retry > 0:
+        	try:
+        		container = devices.tempC(i)
+        		retry=-1	
+        	except IndexError:
+        		print('Error:')
+        		print(retry)
+        		pass
+        	else:
+        		print('{} {}. Temp: {:.3f}C,  of the device {}' .format(count, i+1, container, names[i]))
+        		data = '{{"data":[{{"Capteur": "{}", "Value": "{:.3f}"}}]}}' .format(names[i], container)
+        		print(data)
+        	retry=retry-1
+        i=i+1
 
 
