@@ -10,13 +10,17 @@ from AstraPwm import AstraPwm
 
 
 class dataMenu(QWidget):
-    def __init__(self, unit):
+    def __init__(self, label, unit):
         self.unit=unit
+        self.label=label
         super().__init__()
         self.initUI()
-        self.unit=unit
 
     def initUI(self):
+        self.type_label = QLabel(self.label, self)  
+        self.type_label.setAlignment(Qt.AlignCenter)
+        #self.type_label.setFixedHeight(50)
+
         self.line_edit = QLineEdit(self)
         #self.line_edit.setInputMask('9999')  # Limite les caractères à des chiffres uniquement
         #self.line_edit.setFixedHeight(50)
@@ -27,17 +31,19 @@ class dataMenu(QWidget):
 
         # Mettre le QLabel et le QLineEdit dans un QHBoxLayout pour les aligner horizontalement
         layout = QHBoxLayout()
+        layout.setSpacing(0)
+        layout.addWidget(self.type_label)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.unit_label)
-        layout.setSpacing(0)
         self.setLayout(layout)
 
     def setText(self, value):
         self.line_edit.setText(value)
 
-    def setFixedWidth(self, width):
-        self.line_edit.setFixedWidth(width)
-        self.unit_label.setFixedWidth(width)
+    def setFixedWidth(self, w1, w2, w3):
+        self.type_label.setFixedWidth(w1)
+        self.line_edit.setFixedWidth(w2)
+        self.unit_label.setFixedWidth(w3)
 
     def setReadOnly(self, mybool):
         self.line_edit.setReadOnly(mybool)
@@ -54,27 +60,27 @@ class ina219Frame(QFrame):
         self.setStyleSheet("border: 1px solid black;") 
         
         # Voltage
-        self.textVoltage = dataMenu("V")
-        self.textVoltage.setFixedWidth(50)
+        self.textVoltage = dataMenu("Tension", "V")
+        self.textVoltage.setFixedWidth(80,50,15)
         self.textVoltage.setReadOnly(True)
 
         # Current 
-        self.textCurrent = dataMenu("mA")
-        self.textCurrent.setFixedWidth(50)
+        self.textCurrent = dataMenu("Courant", "mA")
+        self.textCurrent.setFixedWidth(80,50,15)
         self.textCurrent.setReadOnly(True)
 
         # PowerQT
-        self.textPower = dataMenu("mW")
-        self.textPower.setFixedWidth(50)
+        self.textPower = dataMenu("Puissance", "mW")
+        self.textPower.setFixedWidth(80,50,15)
         self.textPower.setReadOnly(True)
 
         layout = QVBoxLayout()
+        layout.setSpacing(0)
         layout.addWidget(self.textVoltage)
         layout.addWidget(self.textCurrent)
         layout.addWidget(self.textPower)
-        layout.setSpacing(1)
         self.setLayout(layout)
-        self.setFixedSize(120, 130)
+        self.setFixedSize(200, 130)
 
     def update_text_fields(self):
         shunt_voltage = self.ina219.shunt_voltage()
@@ -95,7 +101,7 @@ class GpioControl(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setStyleSheet("border: 1px solid black;") 
+        #self.setStyleSheet("border: 1px solid black;") 
         
         # Zone de texte initiale
         self.TextName = QLabel(self.name, self)
@@ -104,7 +110,7 @@ class GpioControl(QWidget):
 
         # Bouton On/Off
         self.toggle_button = QPushButton('Off set On', self)
-        self.toggle_button.setFixedWidth(150)
+        self.toggle_button.setFixedWidth(100)
         self.toggle_button.setStyleSheet("border: 1px solid black;") 
         self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
@@ -115,6 +121,7 @@ class GpioControl(QWidget):
       
         # Layout
         layout = QHBoxLayout()
+        layout.setSpacing(0)
         layout.addWidget(self.TextName)
         layout.addWidget(self.toggle_button)
         layout.addWidget(self.inaFrame)
@@ -147,7 +154,7 @@ class DrewControl(QWidget):
         self.initUI()
 
     def initUI(self):
-
+  
         # Button 
         self.toggle_button = QPushButton(self.name+' Off', self)
         self.set_togglebuttonText()
@@ -155,25 +162,40 @@ class DrewControl(QWidget):
         self.toggle_button.clicked.connect(self.toggle_action)
 
         # Power
-        self.textPower = dataMenu("%")
-        self.textPower.setFixedWidth(60)
+        self.textPower = dataMenu("Power", "%")
+        self.textPower.setFixedWidth(100,50,15)
         self.textPower.setReadOnly(True)
         
         # Power
-        self.textTempConsigne = dataMenu("°C")
-        self.textTempConsigne.setFixedWidth(30)
+        self.textTempConsigne = dataMenu("Consigne", "°C")
+        self.textTempConsigne.setFixedWidth(100,50,15)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.setText("10")
+
          # InaFrame
         self.inaFrame = ina219Frame(self.AstraDrew.get_ina219())
        
+
+        firstCol = QVBoxLayout()
+        firstCol.setSpacing(0)
+        firstCol.addWidget(self.toggle_button)        
+
         # Layout
-        layout = QHBoxLayout()
-        layout.addWidget(self.toggle_button)        
-        layout.addWidget(self.textPower)        
-        layout.addWidget(self.textTempConsigne)        
-        layout.addWidget(self.inaFrame)
-        self.setLayout(layout)
+        secCol = QVBoxLayout()
+        secCol.setSpacing(0)
+        secCol.addWidget(self.textPower)        
+        secCol.addWidget(self.textTempConsigne)        
+
+        thirdCol = QVBoxLayout()
+        thirdCol.setSpacing(0)
+        thirdCol.addWidget(self.inaFrame)        
+
+        allLayout = QHBoxLayout()
+        allLayout.setSpacing(0)
+        allLayout.addLayout(firstCol)
+        allLayout.addLayout(secCol)
+        allLayout.addLayout(thirdCol)
+        self.setLayout(allLayout)
 
     def set_togglebuttonText(self):
         if self.buttonOn:
@@ -197,10 +219,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = QWidget()
     main_layout = QVBoxLayout()
-
-    # Ajouter un widget de titre
-    title_widget = QLabel("Widgets avec bouton On/Off et zones de texte")
-    main_layout.addWidget(title_widget)
+    main_layout.setSpacing(0)
 
     widgets = []
     for name in ["AstraDc1", "AstraDc2", "AstraDc3"]:
@@ -215,8 +234,8 @@ if __name__ == '__main__':
 
 
     main_window.setLayout(main_layout)
-    main_window.setWindowTitle('Widgets avec bouton On/Off et zones de texte')
-    main_window.setGeometry(100, 100, 700, 200)
+    main_window.setWindowTitle('AstrAlim')
+    #main_window.setGeometry(100, 100, 800, 800)
     main_window.show()
 
     # Créer un timer pour mettre à jour tous les widgets toutes les secondes
