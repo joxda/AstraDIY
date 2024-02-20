@@ -2,7 +2,7 @@
 import sys
 import random
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFrame
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from ina219 import INA219
 from AstraGpio import AstraGpio
@@ -161,30 +161,48 @@ class DrewControl(QWidget):
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
+        # Selection capteur temperature
+        self.selTemp = QComboBox(self)        
+        for tempId in self.AstraDrew.get_listTemp():
+            self.selTemp.addItem(tempId)
+        self.selTemp.setCurrentIndex(0)
+        self.set_associateTemp(0)
+        self.selTemp.currentIndexChanged.connect(self.set_associateTemp)
+
         # Power
         self.textPower = dataMenu("Power", "%")
         self.textPower.setFixedWidth(100,50,15)
         self.textPower.setReadOnly(True)
         
-        # Power
+        # Temp consigne
         self.textTempConsigne = dataMenu("Consigne", "°C")
         self.textTempConsigne.setFixedWidth(100,50,15)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.setText("10")
 
+        # Measure Temp
+        self.textTempMesure = dataMenu("Measure", "°C")
+        self.textTempMesure.setFixedWidth(100,50,15)
+        self.textTempMesure.setReadOnly(True)
+        self.textTempMesure.setText("10")
+
+
          # InaFrame
         self.inaFrame = ina219Frame(self.AstraDrew.get_ina219())
        
+        
 
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
         firstCol.addWidget(self.toggle_button)        
+        firstCol.addWidget(self.selTemp)        
 
         # Layout
         secCol = QVBoxLayout()
         secCol.setSpacing(0)
         secCol.addWidget(self.textPower)        
         secCol.addWidget(self.textTempConsigne)        
+        secCol.addWidget(self.textTempMesure)        
 
         thirdCol = QVBoxLayout()
         thirdCol.setSpacing(0)
@@ -200,10 +218,16 @@ class DrewControl(QWidget):
     def set_togglebuttonText(self):
         if self.buttonOn:
             self.toggle_button.setText(self.name+' is On Set Off')
-            self.toggle_button.setStyleSheet("background-color: green")
+            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         else:
             self.toggle_button.setText(self.name+' is Off Set On')
-            self.toggle_button.setStyleSheet("background-color: green")
+            self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+
+
+    def set_associateTemp(self, index):
+        selected_item_text = self.selTemp.itemText(index)
+        self.AstraDrew.set_associateTemp(selected_item_text)
+        print("Selected Temp Sensor:", selected_item_text)
 
 
     def toggle_action(self):
@@ -214,6 +238,8 @@ class DrewControl(QWidget):
         ratio=self.AstraDrew.get_ratio()
         self.inaFrame.update_text_fields()
         self.textPower.setText(str(int(ratio)))
+        temp=self.AstraDrew.get_temp()
+        self.textTempMesure.setText(f"{temp:+.1f}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
