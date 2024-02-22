@@ -2,12 +2,9 @@
 # GPIO used PA17
 
 import gpiod
-from ina219 import INA219
+from powerIna219 import powerIna219
 
 import time
-
-
-from ina219 import INA219
 
 astraGpioSet = { 
                 "AstraDc1": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37},
@@ -23,13 +20,13 @@ class AstraGpio():
         if name in astraGpioSet :
             self.inacaract=astraGpioSet[self.name]
         else:
-            raise UnkownAstraGpio
+            raise Exception("Unkown AstraGpi")
         address = self.inacaract["address"]
         shunt_ohms = self.inacaract["shunt_ohms"]
         max_expected_amps = self.inacaract["max_expected_amps"]
         max_expected_amps = self.inacaract["max_expected_amps"]
          
-        self.ina219=INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
+        self.ina219=powerIna219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
         pin=self.inacaract["pin"]
         self.gpioline = gpiod.find_line(f"PIN{pin:d}")
         if self.gpioline == None: 
@@ -39,7 +36,7 @@ class AstraGpio():
         if self.gpioline == None: 
             self.gpioline = gpiod.find_line(f"GPIO{pin2gpio[pin]:d}")
         if self.gpioline == None:
-            raise GpioNotFofoobarund
+            raise Exception("Gpio Not Found")
         #self.gpioline.request(consumer='AstrAlim', type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
         self.gpioline.request(consumer='AstrAlim')
         if self.gpioline.direction() != self.gpioline.DIRECTION_OUTPUT:
@@ -70,7 +67,7 @@ class AstraGpio():
 
 if __name__ == "__main__":
     listastragpio = []
-    for name in  [ "dc1", "dc2", "dc3" ]:
+    for name in  [ "AstraDc1", "AstraDc2", "AstraDc3" ]:
         listastragpio.append(AstraGpio(name))
     while True:
         for line in listastragpio:

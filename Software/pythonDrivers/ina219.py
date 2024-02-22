@@ -15,6 +15,7 @@ class I2C:
         self.busnum=busnum
         self.address=address
         self.bus=smbus.SMBus(self.busnum)
+        self.retry=4
 
     def writeList(self, register, register_bytes):
         """Write bytes to the specified register."""
@@ -25,7 +26,19 @@ class I2C:
         """Read an unsigned 16-bit value from the specified register, with the
         specified endianness (default little endian, or least significant byte
         first)."""
-        result = self.bus.read_word_data(self.address, register) & 0xFFFF
+        retry=self.retry
+        ex=0
+        while(retry > 0):
+            ex=0
+            retry=retry-1
+            try:
+                result = self.bus.read_word_data(self.address, register) & 0xFFFF
+                retry=0
+            except Exception as ex:
+                print("readU16Retry:", retry)
+                time.sleep(0.001)
+                if not(retry > 0):
+                    raise ex
         #print("Read 0x%04X from register pair 0x%02X, 0x%02X" % (result, register, register+1))
         # Swap bytes if using big endian because read_word_data assumes little
         # endian on ARM (little endian) systems.
@@ -37,7 +50,18 @@ class I2C:
         """Read a signed 16-bit value from the specified register, with the
         specified endianness (default little endian, or least significant byte
         first)."""
-        result = self.readU16(register, little_endian)
+        retry=self.retry
+        ex=0
+        while(retry > 0):
+            ex=0
+            retry=retry-1
+            try:
+                result = self.readU16(register, little_endian)
+            except Exception as ex:
+                print("readS16Retry:", retry)
+                time.sleep(0.001)
+                if not(retry > 0):
+                    raise ex
         if result > 32767:
             result -= 65536
         return result
@@ -45,17 +69,58 @@ class I2C:
     def readS16BE(self, register):
         """Read a signed 16-bit value from the specified register, in big
         endian byte order."""
-        return self.readS16(register, little_endian=False)
+        retval=0
+        retry=self.retry
+        ex=0
+        while(retry > 0):
+            ex=0
+            retry=retry-1
+            try:
+                retval=self.readS16(register, little_endian=False)
+            except Exception as ex:
+                print("readS16BERetry:", retry)
+                time.sleep(0.001)
+                if not(retry > 0):
+                    raise ex
+        return retval
 
     def readU16LE(self, register):
         """Read an unsigned 16-bit value from the specified register, in little
         endian byte order."""
-        return self.readU16(register, little_endian=True)
-    
+        retval=0
+        retry=self.retry
+        ex=0
+        while(retry > 0):
+            ex=0
+            retry=retry-1
+            try:
+                retval=self.readU16(register, little_endian=True)
+            except Exception as ex:
+                print("readU16LERetry:", retry)
+                time.sleep(0.001)
+                if not(retry > 0):
+                    raise ex
+        return retval
+
+   
     def readU16BE(self, register):
         """Read an unsigned 16-bit value from the specified register, in big
         endian byte order."""
-        return self.readU16(register, little_endian=False)
+        retval=0
+        retry=self.retry
+        ex=0
+        while(retry > 0):
+            ex=0
+            retry=retry-1
+            try:
+                retval=self.readU16(register, little_endian=False)
+            except Exception as ex:
+                print("readU16BERetry:", retry)
+                time.sleep(0.001)
+                if not(retry > 0):
+                    raise ex
+        return retval
+
 
 
 class INA219:
@@ -509,5 +574,5 @@ if __name__ == "__main__":
             current = ina219.current()
             power = ina219.power()
 
-            print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}A, Power: {power:.3f}mW")
+            print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}mA, Power: {power:.3f}mW")
 

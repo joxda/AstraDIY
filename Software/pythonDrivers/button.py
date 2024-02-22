@@ -4,7 +4,6 @@ import random
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
-from ina219 import INA219
 from AstraGpio import AstraGpio
 from AstraPwm import AstraPwm
 
@@ -40,6 +39,12 @@ class dataMenu(QWidget):
     def setText(self, value):
         self.line_edit.setText(value)
 
+    def setInputMask(self, value):
+        self.line_edit.setInputMask(value)
+
+    def getText(self):
+        return self.line_edit.text()
+
     def setFixedWidth(self, w1, w2, w3):
         self.type_label.setFixedWidth(w1)
         self.line_edit.setFixedWidth(w2)
@@ -48,6 +53,8 @@ class dataMenu(QWidget):
     def setReadOnly(self, mybool):
         self.line_edit.setReadOnly(mybool)
 
+    def connect(self, doSomething):
+        self.line_edit.textChanged.connect(doSomething)
 
 
 class ina219Frame(QFrame):
@@ -61,37 +68,35 @@ class ina219Frame(QFrame):
         
         # Voltage
         self.textVoltage = dataMenu("Tension", "V")
-        self.textVoltage.setFixedWidth(80,50,15)
+        self.textVoltage.setFixedWidth(80,70,50)
         self.textVoltage.setReadOnly(True)
 
         # Current 
         self.textCurrent = dataMenu("Courant", "mA")
-        self.textCurrent.setFixedWidth(80,50,15)
+        self.textCurrent.setFixedWidth(80,70,50)
         self.textCurrent.setReadOnly(True)
 
         # PowerQT
-        self.textPower = dataMenu("Puissance", "mW")
-        self.textPower.setFixedWidth(80,50,15)
-        self.textPower.setReadOnly(True)
+        self.textEnergie = dataMenu("Energie", "Ah")
+        self.textEnergie.setFixedWidth(80,70,50)
+        self.textEnergie.setReadOnly(True)
 
         layout = QVBoxLayout()
         layout.setSpacing(0)
         layout.addWidget(self.textVoltage)
         layout.addWidget(self.textCurrent)
-        layout.addWidget(self.textPower)
+        layout.addWidget(self.textEnergie)
         self.setLayout(layout)
-        self.setFixedSize(200, 130)
+        self.setFixedSize(230, 140)
 
     def update_text_fields(self):
-        shunt_voltage = self.ina219.shunt_voltage()
         bus_voltage = self.ina219.voltage()
         current = self.ina219.current()
-        power = self.ina219.power()
+        energie = self.ina219.energie()/3600/1000
 
-        # Mettre à jour les champs texte avec des valeurs aléatoires
         self.textVoltage.setText(f"{bus_voltage:+.1f}")
         self.textCurrent.setText(f"{current:+.1f}")
-        self.textPower.setText(f"{power:.1f}")
+        self.textEnergie.setText(f"{energie:.1f}")
 
 class GpioControl(QWidget):
     def __init__(self, name):
@@ -171,18 +176,20 @@ class DrewControl(QWidget):
 
         # Power
         self.textPower = dataMenu("Power", "%")
-        self.textPower.setFixedWidth(100,50,15)
-        self.textPower.setReadOnly(True)
+        self.textPower.setFixedWidth(100,70,15)
+        self.textPower.setReadOnly(False)
+        #self.textPower.setInputMask("000")
+        self.textPower.connect(self.set_power)
         
         # Temp consigne
         self.textTempConsigne = dataMenu("Consigne", "°C")
-        self.textTempConsigne.setFixedWidth(100,50,15)
+        self.textTempConsigne.setFixedWidth(100,70,15)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.setText("10")
 
         # Measure Temp
         self.textTempMesure = dataMenu("Measure", "°C")
-        self.textTempMesure.setFixedWidth(100,50,15)
+        self.textTempMesure.setFixedWidth(100,70,15)
         self.textTempMesure.setReadOnly(True)
         self.textTempMesure.setText("10")
 
@@ -190,8 +197,6 @@ class DrewControl(QWidget):
          # InaFrame
         self.inaFrame = ina219Frame(self.AstraDrew.get_ina219())
        
-        
-
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
         firstCol.addWidget(self.toggle_button)        
@@ -201,7 +206,7 @@ class DrewControl(QWidget):
         secCol = QVBoxLayout()
         secCol.setSpacing(0)
         secCol.addWidget(self.textPower)        
-        secCol.addWidget(self.textTempConsigne)        
+        secCol.addWidget(self.textTempConsigne)
         secCol.addWidget(self.textTempMesure)        
 
         thirdCol = QVBoxLayout()
@@ -217,21 +222,33 @@ class DrewControl(QWidget):
 
     def set_togglebuttonText(self):
         if self.buttonOn:
-            self.toggle_button.setText(self.name+' is On Set Off')
+            self.toggle_button.setText("auto "+self.name+' is On Set Off')
             self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         else:
-            self.toggle_button.setText(self.name+' is Off Set On')
+            self.toggle_button.setText("auto "+self.name+' is Off Set On')
             self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
-
 
     def set_associateTemp(self, index):
         selected_item_text = self.selTemp.itemText(index)
         self.AstraDrew.set_associateTemp(selected_item_text)
         print("Selected Temp Sensor:", selected_item_text)
 
+    def set_power(self):
+        ratio=self.textPower.getText()
+        try:
+            ratio=int(ratio)
+        except:
+            pass
+        else:
+            self.AstraDrew.set_ratio(ratio)
+            self.set_buttonOff()
 
     def toggle_action(self):
         self.buttonOn = not(self.buttonOn)
+        self.set_togglebuttonText()
+
+    def set_buttonOff(self):
+        self.buttonOn = False
         self.set_togglebuttonText()
 
     def update_text_fields(self):
