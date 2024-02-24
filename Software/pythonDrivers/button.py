@@ -220,6 +220,9 @@ class DrewControl(QWidget):
         allLayout.addLayout(thirdCol)
         self.setLayout(allLayout)
 
+    def set_textPowerReadOnly(self, val):
+        self.textPower.setReadOnly(val)
+
     def set_togglebuttonText(self):
         if self.buttonOn:
             self.toggle_button.setText("auto "+self.name+' is On Set Off')
@@ -252,9 +255,13 @@ class DrewControl(QWidget):
         self.set_togglebuttonText()
 
     def update_text_fields(self):
-        ratio=self.AstraDrew.get_ratio()
+        if self.buttonOn:
+            ratio=self.AstraDrew.get_ratio()
+            self.textPower.setText(str(int(ratio)))
+            self.textPower.setReadOnly(True)
+        else:
+            self.textPower.setReadOnly(False)
         self.inaFrame.update_text_fields()
-        self.textPower.setText(str(int(ratio)))
         temp=self.AstraDrew.get_temp()
         self.textTempMesure.setText(f"{temp:+.1f}")
 

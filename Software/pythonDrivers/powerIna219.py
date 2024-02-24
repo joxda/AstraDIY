@@ -6,40 +6,48 @@ import threading
 import time
 
 
-global listIna219
-global powerthreadContinue
-powerthreadContinue=True
-listIna219 = []
-listIna219lock = threading.Lock()
+class AstraInaFetcher(threading.Thread):
+    _AstraInaFetcher=None
 
-def powerthread():
-    locallist=[]
-    lasttime=time.perf_counter()
-    time.sleep(0.5)
-    while powerthreadContinue:
-        with listIna219lock:
-            locallist=listIna219
-        for ina in locallist:
-            if ina["lasttime"] == 0:
-                ina["lasttime"] = time.perf_counter()
-            else:
-                curtime=time.perf_counter()
-                deltatime=curtime-ina["lasttime"]
-                ina["voltage"] = ina["ina219"].voltage()
-                ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
-                ina["current"] = ina["ina219"].current()
-                ina["power"] = ina["ina219"].power()
-                ina["energie"] += ina["power"] * deltatime 
-                ina["lasttime"]=curtime
-                #print(ina["address"]," voltage", ina["voltage"])
+    def __init__(self):
+        super().__init__()
+        self.running = True
+        self.listInalock = threading.Lock()
+        self.listIna = []
 
-def stoppowerthread():
-    powerthreadContinue=False
+    @classmethod
+    def get_instance(cls):
+        if cls._AstraInaFetcher is None:
+            cls._AstraInaFetcher = AstraInaFetcher()
+            cls._AstraInaFetcher.start()
+        return cls._AstraInaFetcher
 
-    
-powerIna219Thread = threading.Thread(target=powerthread, daemon=True)
-powerIna219Thread.start()
 
+    def run(self):
+        while self.running:
+            time.sleep(0.5)
+            with self.listInalock:
+                for ina in self.listIna:
+                    if ina["lasttime"] == 0:
+                        ina["lasttime"] = time.perf_counter()
+                    else:
+                        curtime=time.perf_counter()
+                        deltatime=curtime-ina["lasttime"]
+                        ina["voltage"] = ina["ina219"].voltage()
+                        ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
+                        ina["current"] = ina["ina219"].current()
+                        ina["power"] = ina["ina219"].power()
+                        ina["energie"] += ina["power"] * deltatime
+                        ina["lasttime"]=curtime
+                    #print(ina["address"]," voltage", ina["voltage"])
+
+    def stop(self):
+        self.running=False
+        self.join()
+
+    def set_ina(self, ina):
+        with self.listInalock:
+            self.listIna.append(ina)
 
 
 class powerIna219:
@@ -70,14 +78,16 @@ class powerIna219:
         self.ina219["ina219"]= INA219(shunt_ohms, max_expected_amps, busnum, address, log_level)
         self.configured=False
 
+        # Temp fetcher
+        self.AstraInaFetcher = AstraInaFetcher.get_instance()
+
     def configure(self, voltage_range=INA219.RANGE_32V, gain=INA219.GAIN_AUTO, bus_adc=INA219.ADC_12BIT, shunt_adc=INA219.ADC_12BIT):
         if self.configured:
             raise Exception("powerIna219 already Configured")
         else:
             self.configured=True
             self.ina219["ina219"].configure(voltage_range, gain, bus_adc, shunt_adc)
-            with listIna219lock:
-                listIna219.append(self.ina219)
+            self.AstraInaFetcher.set_ina(self.ina219)
 
     def voltage(self):
         return self.ina219["voltage"]

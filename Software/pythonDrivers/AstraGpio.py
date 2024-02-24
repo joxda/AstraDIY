@@ -58,8 +58,6 @@ class AstraGpio():
             self.gpioline.set_value(1)
         else:
             self.gpioline.set_value(0)
-        # Work around issue (One looses it's configuration).
-        self.ina219.configure()
 
     def is_on(self):
         return (self.gpioline.get_value() != 0)

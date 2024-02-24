@@ -3,6 +3,7 @@
 
 from powerIna219 import powerIna219
 from syspwm import SysPWM
+import threading
 import glob
 import os
 import time
@@ -14,6 +15,78 @@ astraGpioSet = {
                 "AstraPwm1": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":1},
                 "AstraPwm2": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":2}
 }
+
+
+class AstraTempFetcher(threading.Thread):
+    _AstraTempFetcher=None
+    
+    def __init__(self):
+        super().__init__()
+        self.running = False
+        self.tableTemp = {}
+        self.lock = threading.Lock()
+        self.lock.acquire(True)
+
+    @classmethod
+    def get_instance(cls):
+        if cls._AstraTempFetcher is None:
+            cls._AstraTempFetcher = AstraTempFetcher()
+            cls._AstraTempFetcher.start()
+        return cls._AstraTempFetcher
+
+    def run(self):
+        def _read_temp(path):
+            f = open(path, 'r')
+            lines = f.readlines()
+            f.close()
+            return lines
+        # Search devices
+        for path in glob.glob('/sys/bus/w1/devices/28*'):
+            name = os.path.basename(path)
+            filename = path + "/w1_slave"
+            if os.access(filename, os.R_OK):
+                self.tableTemp[name] = {}
+                self.tableTemp[name]["val"] = 0
+                self.tableTemp[name]["file"] = path + "/w1_slave"
+        self.running = True
+        self.lock.release()
+        # Run acquisition loop
+        while self.running:
+            for name in self.tableTemp.keys():
+                tempFile = self.tableTemp[name]["file"]
+                retries = 5
+                returnval = 998
+                while (returnval == 998) and (retries > 0):
+                    lines = _read_temp(tempFile)
+                    if (len(lines) == 2):
+                        if (lines[0].strip()[-3:] == 'YES'):
+                            equals_pos = lines[1].find('t=')
+                            if equals_pos != -1:
+                                temp = lines[1][equals_pos + 2:]
+                                returnval = float(temp) / 1000
+                    if (returnval == 998):
+                        retries -= 1
+                        time.sleep(0.1)
+                if returnval != 998:
+                    self.tableTemp[name]["val"] = returnval
+            time.sleep(0.5)
+            
+    def stop(self):
+        self.running = False
+        self.join()
+
+    def get_listTemp(self):
+        with self.lock:
+            return list(self.tableTemp.keys())
+
+    def get_temp(self, tempname):
+        return self.tableTemp[tempname]["val"]
+
+    def get_default_temp(self):
+        with self.lock:
+            tempNames = list(self.tableTemp.keys())
+            return self.tableTemp[tempNames[0]]["val"]
+
 
 class AstraPwm():
     def __init__(self, name, MinTemp=-10, MaxTemp=20):
@@ -31,7 +104,8 @@ class AstraPwm():
         self.ina219=powerIna219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
         self.ina219.configure(bus_adc=powerIna219.ADC_64SAMP, shunt_adc=powerIna219.ADC_64SAMP)
         # End Ina219 start
-         
+
+
         self.ratio=0
         self.period_ms=1
         #print("Init pwm:",self.inacaract["chip"],self.inacaract["pwm"])
@@ -41,44 +115,25 @@ class AstraPwm():
         self.pwm.enable()
         atexit.register(self.pwm.disable)
 
-        self.tempBaseDir = '/sys/bus/w1/devices/'        
-        self.tempFile = ''
+        # Temp fetcher
+        self.AstraTempFetcher = AstraTempFetcher.get_instance()
+        self.tempname= self.AstraTempFetcher.get_default_temp()
+
+
 
     def get_listTemp(self):
-        listname=[]
-        for path in glob.glob(self.tempBaseDir + '28*'):
-            name=os.path.basename(path)
-            listname.append(name)
-        return listname
+       return self.AstraTempFetcher.get_listTemp()
+
+    def get_temp(self):
+        return self.AstraTempFetcher.get_temp(self.tempname)
 
     def set_associateTemp(self, name):
-        self.tempFile=self.tempBaseDir+name+"/w1_slave"
-        if os.access(self.tempFile, os.R_OK):
+        if name in self.AstraTempFetcher.get_listTemp():
+            self.tempname = name
             return True
         else:
             return False
-        
-    def _read_temp(self, path): 
-        f = open(path, 'r')
-        lines = f.readlines()
-        f.close()
-        return lines
 
-    def get_temp(self):
-        retries = 5
-        returnval=998
-        while (returnval==998) and (retries > 0):
-            lines = self._read_temp(self.tempFile)
-            if (len(lines) == 2):
-                if (lines[0].strip()[-3:] == 'YES'):
-                    equals_pos = lines[1].find('t=')
-                    if equals_pos != -1:
-                        temp = lines[1][equals_pos + 2:]
-                        returnval=float(temp) / 1000
-            if (returnval==998) :
-                retries -= 1
-                time.sleep(0.1)
-        return returnval
     def get_ina219(self):
         return self.ina219
 
@@ -121,7 +176,7 @@ class AstraPwm():
     def set_cmdTemp(self, set_cmdTemp):
         self.cmdTemp = set_cmdTemp
 
-    def get_Temp(self):
+    def get_cmdTemp(self):
         return self.cmdTemp
 
 if __name__ == '__main__':
