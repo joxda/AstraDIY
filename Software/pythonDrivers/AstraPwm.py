@@ -8,6 +8,8 @@ import glob
 import os
 import time
 import atexit
+import numpy as np
+
 
 
 
@@ -120,6 +122,11 @@ class AstraPwm():
         self.tempname= self.AstraTempFetcher.get_default_temp()
 
 
+        # Aserv
+        self.cmdTemp=0
+        self.poids_objet = 1
+        self.puissance_max = 12*3
+        self._running = False
 
     def get_listTemp(self):
        return self.AstraTempFetcher.get_listTemp()
@@ -157,16 +164,9 @@ class AstraPwm():
         return self.name
 
     def set_ratio(self, ratio):
-        intratio = int(ratio)
-        if intratio < 0:
-            intratio=0
-        elif intratio > 100:
-            intratio = 100
-        self.ratio=intratio
+        self.ratio=max(0, min(100,int(ratio)))
         duty=self.period_ms*self.ratio/100.0
-        #print("Ratio:",self.ratio, "; Duty=", duty) 
         self.pwm.set_duty_ms(duty)
-        #self.pwm.set_duty_ms(self.ratio/10.0)
 
     def get_ratio(self):
         return self.ratio
@@ -174,10 +174,63 @@ class AstraPwm():
 
     # Control temperature
     def set_cmdTemp(self, set_cmdTemp):
-        self.cmdTemp = set_cmdTemp
+        try:
+            self.cmdTemp = int(set_cmdTemp)
+        except:
+            pass
 
     def get_cmdTemp(self):
         return self.cmdTemp
+
+    def _auto_tune_pid_lms(self):
+        # Initialisation des coefficients PID
+        Kp = 1.0
+        Ki = 0.0
+        Kd = 0.0
+        step_time = 1.0
+        learning_rate = 1 / (self.poids_objet * self.puissance_max)
+        lastpid_output=0
+
+        integral = 0.0  # Valeur initiale de l'intégrale glissante
+        prev_error = 0.0
+
+        while self._running:
+            error = self.get_cmdTemp() - self.get_temp()
+
+            # Calcul de l'intégrale glissante
+            integral = 0.9 * integral + error
+
+            # Calcul de la sortie du PID avec les coefficients PID actuels
+            pid_output = Kp * error + Ki * integral + Kd * (error - prev_error)
+
+            # Gestion de la saturation de pid_output entre 0 et 100
+            pid_output = max(0, min(pid_output, 100))
+
+            # Mise à jour des coefficients PID si la sortie n'est pas saturée
+            if pid_output < 100 and pid_output > 0:
+                Kp -= learning_rate * error
+                Ki += learning_rate * integral
+                Kd -= learning_rate * (error - prev_error)
+                # Gestion de la saturation des coefficients PID entre 0 et 100
+                Kp = max(0, min(Kp, 100))
+                Ki = max(0, min(Ki, 100))
+                Kd = max(0, min(Kd, 100))
+
+            pid_output = max(0, min(pid_output, 100))
+            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), "pid=",pid_output)
+            self.set_ratio(pid_output)
+            time.sleep(step_time)
+
+
+
+    def startAserv(self):
+        if not self._running:
+            self._running = True
+            threading.Thread(target=self._auto_tune_pid_lms).start()
+
+    def stopAserv(self):
+        self._running = False
+
 
 if __name__ == '__main__':
 

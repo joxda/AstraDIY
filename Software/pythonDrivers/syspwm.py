@@ -55,7 +55,7 @@ class SysPWM(object):
 			with open(fil,'w') as f:
 				f.write("{m}\n".format(m=m))
 		except Exception as e:
-			print("Uable to open ", fil, " Exception ",str(e))
+			print("Uable to open ", fil, " Exception ",str(e), "Arg=",m)
 
 
 	def create_pwmX(self):

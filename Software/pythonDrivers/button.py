@@ -135,7 +135,7 @@ class GpioControl(QWidget):
     def set_togglebuttonText(self):
         if self.gpio.is_on():
             self.toggle_button.setText('On Set Off')
-            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;") 
+            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         else:
             self.toggle_button.setText('Off Set On')
             self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;") 
@@ -162,6 +162,7 @@ class DrewControl(QWidget):
   
         # Button 
         self.toggle_button = QPushButton(self.name+' Off', self)
+        self.set_buttonOff()
         self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
@@ -185,6 +186,7 @@ class DrewControl(QWidget):
         self.textTempConsigne = dataMenu("Consigne", "°C")
         self.textTempConsigne.setFixedWidth(100,70,15)
         self.textTempConsigne.setReadOnly(False)
+        self.textTempConsigne.connect(self.set_cmdtemp)
         self.textTempConsigne.setText("10")
 
         # Measure Temp
@@ -227,9 +229,11 @@ class DrewControl(QWidget):
         if self.buttonOn:
             self.toggle_button.setText("auto "+self.name+' is On Set Off')
             self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+            self.AstraDrew.startAserv()
         else:
             self.toggle_button.setText("auto "+self.name+' is Off Set On')
             self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+            self.AstraDrew.stopAserv()
 
     def set_associateTemp(self, index):
         selected_item_text = self.selTemp.itemText(index)
@@ -245,6 +249,8 @@ class DrewControl(QWidget):
         else:
             self.AstraDrew.set_ratio(ratio)
             self.set_buttonOff()
+    def set_cmdtemp(self):
+        self.AstraDrew.set_cmdTemp(self.textTempConsigne.getText())
 
     def toggle_action(self):
         self.buttonOn = not(self.buttonOn)
