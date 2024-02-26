@@ -119,9 +119,10 @@ def myatexit():
 if __name__ == "__main__":
 	from time import sleep
 	import atexit
-	SLEE=1
+	SLEE=0.5
 	periode1=1
 	periode2=1
+	step=0.001
 	duty1=0
 	duty2=periode2
 
@@ -145,12 +146,12 @@ if __name__ == "__main__":
 	pwm1.enable()
 
 	while True:
-		duty1 = (duty1 + 0.01)
+		duty1 = (duty1 + step)
 		if duty1 > periode1:
 			duty1=0
 		print("Duty1:",duty1, "ms", "period=",periode1,"ms")
 		pwm.set_duty_ms(duty1)
-		duty2 = (duty2 - 0.01)
+		duty2 = (duty2 - step)
 		if duty2 < 0:
 			duty2=periode2
 		print("Duty2:",duty2, "ms", "period=",periode2,"ms")

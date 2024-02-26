@@ -54,7 +54,7 @@ class dataMenu(QWidget):
         self.line_edit.setReadOnly(mybool)
 
     def connect(self, doSomething):
-        self.line_edit.textChanged.connect(doSomething)
+        self.line_edit.textEdited.connect(doSomething)
 
 
 class ina219Frame(QFrame):
@@ -162,8 +162,6 @@ class DrewControl(QWidget):
   
         # Button 
         self.toggle_button = QPushButton(self.name+' Off', self)
-        self.set_buttonOff()
-        self.set_togglebuttonText()
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
@@ -181,24 +179,28 @@ class DrewControl(QWidget):
         self.textPower.setReadOnly(False)
         #self.textPower.setInputMask("000")
         self.textPower.connect(self.set_power)
-        
+
         # Temp consigne
         self.textTempConsigne = dataMenu("Consigne", "°C")
         self.textTempConsigne.setFixedWidth(100,70,15)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.connect(self.set_cmdtemp)
-        self.textTempConsigne.setText("10")
 
         # Measure Temp
         self.textTempMesure = dataMenu("Measure", "°C")
         self.textTempMesure.setFixedWidth(100,70,15)
         self.textTempMesure.setReadOnly(True)
-        self.textTempMesure.setText("10")
 
 
          # InaFrame
         self.inaFrame = ina219Frame(self.AstraDrew.get_ina219())
-       
+
+        # Set defauls
+        self.set_buttonOff()
+        self.set_togglebuttonText()
+        self.textTempMesure.setText("10")
+        self.textTempConsigne.setText("10")
+
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
         firstCol.addWidget(self.toggle_button)        
@@ -234,6 +236,8 @@ class DrewControl(QWidget):
             self.toggle_button.setText("auto "+self.name+' is Off Set On')
             self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             self.AstraDrew.stopAserv()
+            self.AstraDrew.set_ratio(0)
+            self.textPower.setText(str(self.AstraDrew.get_ratio()))
 
     def set_associateTemp(self, index):
         selected_item_text = self.selTemp.itemText(index)

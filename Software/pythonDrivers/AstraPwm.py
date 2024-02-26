@@ -91,7 +91,7 @@ class AstraTempFetcher(threading.Thread):
 
 
 class AstraPwm():
-    def __init__(self, name, MinTemp=-10, MaxTemp=20):
+    def __init__(self, name, MinTemp=0, MaxTemp=20):
         self.name = name
 
         # Ina219 start
@@ -121,12 +121,16 @@ class AstraPwm():
         self.AstraTempFetcher = AstraTempFetcher.get_instance()
         self.tempname= self.AstraTempFetcher.get_default_temp()
 
-
         # Aserv
         self.cmdTemp=0
         self.poids_objet = 1
         self.puissance_max = 12*3
+        self.minTemp = MinTemp
+        self.maxTemp = MaxTemp
         self._running = False
+
+    def __aexit__(self):
+        self.stopAserv()
 
     def get_listTemp(self):
        return self.AstraTempFetcher.get_listTemp()
@@ -184,21 +188,24 @@ class AstraPwm():
 
     def _auto_tune_pid_lms(self):
         # Initialisation des coefficients PID
-        Kp = 1.0
+        Kp = 1
         Ki = 0.0
         Kd = 0.0
         step_time = 1.0
-        learning_rate = 1 / (self.poids_objet * self.puissance_max)
+        learning_rate = 0.001
         lastpid_output=0
 
-        integral = 0.0  # Valeur initiale de l'intégrale glissante
+        error = self.get_cmdTemp() - self.get_temp()
+        integralNbVal = 1
+        integral = error * integralNbVal  # Valeur initiale de l'intégrale glissante
+        integralList = [error] * integralNbVal
         prev_error = 0.0
 
         while self._running:
             error = self.get_cmdTemp() - self.get_temp()
-
+            integralList.append(error)
             # Calcul de l'intégrale glissante
-            integral = 0.9 * integral + error
+            integral = integral - integralList.pop(0) + error
 
             # Calcul de la sortie du PID avec les coefficients PID actuels
             pid_output = Kp * error + Ki * integral + Kd * (error - prev_error)
@@ -207,7 +214,7 @@ class AstraPwm():
             pid_output = max(0, min(pid_output, 100))
 
             # Mise à jour des coefficients PID si la sortie n'est pas saturée
-            if pid_output < 100 and pid_output > 0:
+            if pid_output < 100 and pid_output > -100:
                 Kp -= learning_rate * error
                 Ki += learning_rate * integral
                 Kd -= learning_rate * (error - prev_error)
@@ -217,20 +224,21 @@ class AstraPwm():
                 Kd = max(0, min(Kd, 100))
 
             pid_output = max(0, min(pid_output, 100))
-            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), "pid=",pid_output)
+            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), f"pid={pid_output:.2f}   Kp={Kp:.2f} Ki={Ki:.2f} Kd={Kd:.2f}")
             self.set_ratio(pid_output)
             time.sleep(step_time)
-
-
+        self.set_ratio(0)
 
     def startAserv(self):
         if not self._running:
             self._running = True
-            threading.Thread(target=self._auto_tune_pid_lms).start()
+            self.thread = threading.Thread(target=self._auto_tune_pid_lms)
+            self.thread.start()
 
     def stopAserv(self):
         self._running = False
-
+        #if hasattr(self, 'thread') and self.thread.is_alive():
+        #    self.thread.join()
 
 if __name__ == '__main__':
 
