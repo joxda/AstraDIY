@@ -1,8 +1,10 @@
 #!/bin/env python3
 import sys
-import random
+import os
+import signal
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraGpio import AstraGpio
 from AstraPwm import AstraPwm
@@ -275,32 +277,45 @@ class DrewControl(QWidget):
         temp=self.AstraDrew.get_temp()
         self.textTempMesure.setText(f"{temp:+.1f}")
 
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+
+    def initUI(self):
+        self.main_layout = QVBoxLayout()
+        self.main_layout.setSpacing(0)
+
+        self.widgets = []
+        for name in ["AstraDc1", "AstraDc2", "AstraDc3"]:
+            wiget=GpioControl(name)
+            self.widgets.append(wiget)
+            self.main_layout.addWidget(wiget)
+        
+        for name in ["AstraPwm1", "AstraPwm2"]:
+            wiget=DrewControl(name)
+            self.widgets.append(wiget)
+            self.main_layout.addWidget(wiget)
+
+
+        self.setLayout(self.main_layout)
+        self.setWindowTitle('AstrAlim')
+
+
+        # Créer un timer pour mettre à jour tous les widgets toutes les secondes
+        self.timer = QTimer()
+        self.timer.timeout.connect(lambda: [widget.update_text_fields() for widget in self.widgets])
+        self.timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
+ 
+    def closeEvent(self, event):
+        os.kill(os.getpid(), signal.SIGTERM)
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = QWidget()
-    main_layout = QVBoxLayout()
-    main_layout.setSpacing(0)
-
-    widgets = []
-    for name in ["AstraDc1", "AstraDc2", "AstraDc3"]:
-        wiget=GpioControl(name)
-        widgets.append(wiget)
-        main_layout.addWidget(wiget)
-        
-    for name in ["AstraPwm1", "AstraPwm2"]:
-        wiget=DrewControl(name)
-        widgets.append(wiget)
-        main_layout.addWidget(wiget)
-
-
-    main_window.setLayout(main_layout)
-    main_window.setWindowTitle('AstrAlim')
-    #main_window.setGeometry(100, 100, 800, 800)
+    main_window = MainWindow()
     main_window.show()
 
-    # Créer un timer pour mettre à jour tous les widgets toutes les secondes
-    timer = QTimer()
-    timer.timeout.connect(lambda: [widget.update_text_fields() for widget in widgets])
-    timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
+
     sys.exit(app.exec_())
 

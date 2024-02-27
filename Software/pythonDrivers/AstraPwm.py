@@ -129,8 +129,9 @@ class AstraPwm():
         self.maxTemp = MaxTemp
         self._running = False
 
-    def __aexit__(self):
+    def end(self):
         self.stopAserv()
+        self.AstraTempFetcher.stop()
 
     def get_listTemp(self):
        return self.AstraTempFetcher.get_listTemp()
