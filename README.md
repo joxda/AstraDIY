@@ -7,6 +7,6 @@ It contains :
 
 # Installation :
 ## Gps :
-See [Installation process](Software/Install/readme.md)
+See [Installation process](Software/Install/README.md)
 ## Software Python Drivers:
 ## Usage with kstars/Indi:
