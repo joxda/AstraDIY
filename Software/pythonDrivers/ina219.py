@@ -3,6 +3,8 @@
 """Library for the INA219 current and power monitor from Texas Instruments.
 
 Supports the Raspberry Pi using the I2C bus.
+
+Modified to comply to PI5.
 """
 import logging
 import time
