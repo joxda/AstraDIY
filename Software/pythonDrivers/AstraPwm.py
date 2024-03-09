@@ -6,9 +6,11 @@ from syspwm import SysPWM
 import threading
 import glob
 import os
+from pathlib import Path
 import time
 import atexit
 import numpy as np
+import json
 
 
 
@@ -122,12 +124,16 @@ class AstraPwm():
         self.tempname= self.AstraTempFetcher.get_default_temp()
 
         # Aserv
+        self.Kp = 2
+        self.Ki = 0.0
+        self.Kd = 0.0
         self.cmdTemp=0
         self.poids_objet = 1
         self.puissance_max = 12*3
         self.minTemp = MinTemp
         self.maxTemp = MaxTemp
         self._running = False
+        self.load()
 
     def end(self):
         self.stopAserv()
@@ -139,9 +145,18 @@ class AstraPwm():
     def get_temp(self):
         return self.AstraTempFetcher.get_temp(self.tempname)
 
-    def set_associateTemp(self, name):
+    def get_associateTemp(self):
+        return self.tempname
+
+    def _set_associateTemp(self, name):
         if name in self.AstraTempFetcher.get_listTemp():
             self.tempname = name
+            return True
+        else:
+            return False
+
+    def set_associateTemp(self, name):
+        if self._set_associateTemp(name):
             return True
         else:
             return False
@@ -169,12 +184,15 @@ class AstraPwm():
         return self.name
 
     def set_ratio(self, ratio):
-        self.ratio=max(0, min(100,int(ratio)))
+        self.ratio=max(0, min(100,int(ratio*10)/10))
         duty=self.period_ms*self.ratio/100.0
         self.pwm.set_duty_ms(duty)
+        #print("AstraPwm.set_ratio(",self.ratio,")","=>",duty)
+        
 
     def get_ratio(self):
-        return self.ratio
+        #print("AstraPwm.get_ratio(",self.ratio,")")
+        return int(self.ratio)
 
 
     # Control temperature
@@ -189,15 +207,12 @@ class AstraPwm():
 
     def _auto_tune_pid_lms(self):
         # Initialisation des coefficients PID
-        Kp = 1
-        Ki = 0.0
-        Kd = 0.0
-        step_time = 1.0
-        learning_rate = 0.001
+        step_time = 3.0
+        learning_rate = 0.00001
         lastpid_output=0
 
         error = self.get_cmdTemp() - self.get_temp()
-        integralNbVal = 1
+        integralNbVal = 10
         integral = error * integralNbVal  # Valeur initiale de l'intégrale glissante
         integralList = [error] * integralNbVal
         prev_error = 0.0
@@ -209,23 +224,23 @@ class AstraPwm():
             integral = integral - integralList.pop(0) + error
 
             # Calcul de la sortie du PID avec les coefficients PID actuels
-            pid_output = Kp * error + Ki * integral + Kd * (error - prev_error)
+            pid_output = self.Kp * error + self.Ki * integral + self.Kd * (error - prev_error)
 
             # Gestion de la saturation de pid_output entre 0 et 100
             pid_output = max(0, min(pid_output, 100))
 
             # Mise à jour des coefficients PID si la sortie n'est pas saturée
             if pid_output < 100 and pid_output > -100:
-                Kp -= learning_rate * error
-                Ki += learning_rate * integral
-                Kd -= learning_rate * (error - prev_error)
+                self.Kp -= learning_rate * error
+                self.Ki += learning_rate * integral
+                self.Kd -= learning_rate * (error - prev_error)
                 # Gestion de la saturation des coefficients PID entre 0 et 100
-                Kp = max(0, min(Kp, 100))
-                Ki = max(0, min(Ki, 100))
-                Kd = max(0, min(Kd, 100))
+                self.Kp = max(0, min(self.Kp, 100))
+                self.Ki = max(0, min(self.Ki, 100))
+                self.Kd = max(0, min(self.Kd, 100))
 
             pid_output = max(0, min(pid_output, 100))
-            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), f"pid={pid_output:.2f}   Kp={Kp:.2f} Ki={Ki:.2f} Kd={Kd:.2f}")
+            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), f"pid={pid_output:.2f}   Kp={self.Kp:.3f} Ki={self.Ki:.3f} Kd={self.Kd:.3f} int:{integral:.1f}")
             self.set_ratio(pid_output)
             time.sleep(step_time)
         self.set_ratio(0)
@@ -240,6 +255,49 @@ class AstraPwm():
         self._running = False
         #if hasattr(self, 'thread') and self.thread.is_alive():
         #    self.thread.join()
+
+    def isAserv(self):
+        return self._running
+
+
+    def load(self):
+        variables_dict = {}
+        filename = "sauve"+self.name+".json"
+        chemin_complet=Path.home() / ".AstrAlim"  / filename
+        if chemin_complet.exists():
+            with open(chemin_complet, "r") as f:
+                variables_dict = json.load(f)
+            if "Kp" in variables_dict and "Ki"  in variables_dict  and "Kd"  in variables_dict:
+                self.Kp = variables_dict["Kp"]
+                self.Ki = variables_dict["Ki"]
+                self.Kd = variables_dict["Kd"]
+            if "tempname" in variables_dict:
+                return self._set_associateTemp(variables_dict["tempname"])
+            else:
+                return False
+        else:
+            return False
+
+
+
+    def save(self):
+        variables_dict = {}
+        variables_dict = {
+                "name":self.name, 
+                "tempname":self.tempname,
+                "Kp":self.Kp,
+                "Ki":self.Ki,
+                "Kd":self.Kd,
+                }
+        chemin_complet=Path.home() / ".AstrAlim"
+        chemin_complet.mkdir(parents=True, exist_ok=True)
+        filename = "sauve"+self.name+".json"
+        chemin_complet = chemin_complet / filename
+        with open(chemin_complet, "w") as f:
+            json.dump(variables_dict, f, indent=4)
+
+
+        
 
 if __name__ == '__main__':
 

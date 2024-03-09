@@ -98,7 +98,15 @@ class ina219Frame(QFrame):
 
         self.textVoltage.setText(f"{bus_voltage:+.1f}")
         self.textCurrent.setText(f"{current:+.1f}")
-        self.textEnergie.setText(f"{energie:.1f}")
+        if energie < 100:
+            self.textEnergie.setText(f"{energie:.3f}")
+        elif energie < 500:
+            self.textEnergie.setText(f"{energie:.2f}")
+        elif energie < 1000:
+            self.textEnergie.setText(f"{energie:.1f}")
+        else:
+            energie=int(energie/1000)
+            self.textEnergie.setText(f"{energie}k")
 
 class GpioControl(QWidget):
     def __init__(self, name):
@@ -167,12 +175,23 @@ class DrewControl(QWidget):
         self.toggle_button.setCheckable(True)
         self.toggle_button.clicked.connect(self.toggle_action)
 
+        self.save_button = QPushButton('Save', self)
+        self.save_button.setCheckable(True)
+        self.save_button.clicked.connect(self.AstraDrew.save)
+
+
         # Selection capteur temperature
         self.selTemp = QComboBox(self)        
+        curtempname = self.AstraDrew. get_associateTemp()
+        defaultIndex=0
+        curindex=0
         for tempId in self.AstraDrew.get_listTemp():
             self.selTemp.addItem(tempId)
-        self.selTemp.setCurrentIndex(0)
-        self.set_associateTemp(0)
+            if tempId == curtempname:
+                defaultIndex=curindex
+            curindex=curindex+1
+        self.selTemp.setCurrentIndex(defaultIndex)
+        #self.set_associateTemp(0)
         self.selTemp.currentIndexChanged.connect(self.set_associateTemp)
 
         # Power
@@ -207,6 +226,7 @@ class DrewControl(QWidget):
         firstCol.setSpacing(0)
         firstCol.addWidget(self.toggle_button)        
         firstCol.addWidget(self.selTemp)        
+        firstCol.addWidget(self.save_button)        
 
         # Layout
         secCol = QVBoxLayout()
@@ -237,14 +257,15 @@ class DrewControl(QWidget):
         else:
             self.toggle_button.setText("auto "+self.name+' is Off Set On')
             self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
-            self.AstraDrew.stopAserv()
-            self.AstraDrew.set_ratio(0)
+            if self.AstraDrew.isAserv():
+                self.AstraDrew.stopAserv()
+                self.AstraDrew.set_ratio(0)
             self.textPower.setText(str(self.AstraDrew.get_ratio()))
 
     def set_associateTemp(self, index):
         selected_item_text = self.selTemp.itemText(index)
         self.AstraDrew.set_associateTemp(selected_item_text)
-        print("Selected Temp Sensor:", selected_item_text)
+        #print("Selected Temp Sensor:", selected_item_text)
 
     def set_power(self):
         ratio=self.textPower.getText()
@@ -253,8 +274,10 @@ class DrewControl(QWidget):
         except:
             pass
         else:
+            #print("self.AstraDrew.set_ratio(",ratio,")")
             self.AstraDrew.set_ratio(ratio)
             self.set_buttonOff()
+
     def set_cmdtemp(self):
         self.AstraDrew.set_cmdTemp(self.textTempConsigne.getText())
 
@@ -269,7 +292,7 @@ class DrewControl(QWidget):
     def update_text_fields(self):
         if self.buttonOn:
             ratio=self.AstraDrew.get_ratio()
-            self.textPower.setText(str(int(ratio)))
+            self.textPower.setText(f"{ratio:.1f}")
             self.textPower.setReadOnly(True)
         else:
             self.textPower.setReadOnly(False)
