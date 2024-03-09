@@ -20,23 +20,30 @@ class dataMenu(QWidget):
     def initUI(self):
         self.type_label = QLabel(self.label, self)  
         self.type_label.setAlignment(Qt.AlignCenter)
+        self.type_label.adjustSize()
         #self.type_label.setFixedHeight(50)
 
         self.line_edit = QLineEdit(self)
+        self.line_edit.adjustSize()
         #self.line_edit.setInputMask('9999')  # Limite les caractères à des chiffres uniquement
         #self.line_edit.setFixedHeight(50)
 
         self.unit_label = QLabel(self.unit, self)  
         self.unit_label.setAlignment(Qt.AlignCenter)
+        self.unit_label.adjustSize()
+        
         #self.unit_label.setFixedHeight(50)
 
         # Mettre le QLabel et le QLineEdit dans un QHBoxLayout pour les aligner horizontalement
         layout = QHBoxLayout()
-        layout.setSpacing(0)
         layout.addWidget(self.type_label)
         layout.addWidget(self.line_edit)
         layout.addWidget(self.unit_label)
+        layout.setSpacing(0)
+        layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
         self.setLayout(layout)
+        self.adjustSize()
+        
 
     def setText(self, value):
         self.line_edit.setText(value)
@@ -51,6 +58,7 @@ class dataMenu(QWidget):
         self.type_label.setFixedWidth(w1)
         self.line_edit.setFixedWidth(w2)
         self.unit_label.setFixedWidth(w3)
+        pass
 
     def setReadOnly(self, mybool):
         self.line_edit.setReadOnly(mybool)
@@ -68,6 +76,9 @@ class ina219Frame(QFrame):
     def initUI(self):
         self.setStyleSheet("border: 1px solid black;") 
         
+        label = QLabel(self.ina219.get_name()) 
+        label.setAlignment(Qt.AlignCenter)        
+        label.adjustSize()
         # Voltage
         self.textVoltage = dataMenu("Tension", "V")
         self.textVoltage.setFixedWidth(80,70,50)
@@ -84,12 +95,14 @@ class ina219Frame(QFrame):
         self.textEnergie.setReadOnly(True)
 
         layout = QVBoxLayout()
-        layout.setSpacing(0)
+        layout.addWidget(label)
         layout.addWidget(self.textVoltage)
         layout.addWidget(self.textCurrent)
         layout.addWidget(self.textEnergie)
+        layout.setSpacing(0)
+        layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
         self.setLayout(layout)
-        self.setFixedSize(230, 140)
+        self.setFixedSize(230, 160)
 
     def update_text_fields(self):
         bus_voltage = self.ina219.voltage()
