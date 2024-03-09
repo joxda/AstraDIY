@@ -1,7 +1,5 @@
 #!/bin/env python3
 # GPIO used PA17
-
-from AstraIna import powerIna219
 from syspwm import SysPWM
 import threading
 import glob
@@ -12,13 +10,6 @@ import atexit
 import numpy as np
 import json
 
-
-
-
-astraGpioSet = { 
-                "AstraPwm1": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":1},
-                "AstraPwm2": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":2}
-}
 
 
 class AstraTempFetcher(threading.Thread):
@@ -37,6 +28,11 @@ class AstraTempFetcher(threading.Thread):
             cls._AstraTempFetcher = AstraTempFetcher()
             cls._AstraTempFetcher.start()
         return cls._AstraTempFetcher
+
+    @classmethod
+    def exitAll(cls):
+        if not(cls._AstraTempFetcher is None):
+            cls._AstraTempFetcher.stop()
 
     def run(self):
         def _read_temp(path):
@@ -78,6 +74,7 @@ class AstraTempFetcher(threading.Thread):
     def stop(self):
         self.running = False
         self.join()
+        AstraTempFetcher._AstraTempFetcher = None
 
     def get_listTemp(self):
         with self.lock:
@@ -93,21 +90,16 @@ class AstraTempFetcher(threading.Thread):
 
 
 class AstraPwm():
+    astraGpioSet = { 
+                "AstraPwm1": {"chip":2, "pwm":1},
+                "AstraPwm2": {"chip":2, "pwm":2}
+    }
     def __init__(self, name, MinTemp=0, MaxTemp=20):
         self.name = name
-
-        # Ina219 start
-        if name in astraGpioSet :
-            self.inacaract=astraGpioSet[self.name]
+        if name in self.astraGpioSet :
+            self.inacaract=self.astraGpioSet[self.name]
         else:
             raise Exception("Unkown AstraGpio")
-        address = self.inacaract["address"]
-        shunt_ohms = self.inacaract["shunt_ohms"]
-        max_expected_amps = self.inacaract["max_expected_amps"]
-        max_expected_amps = self.inacaract["max_expected_amps"]
-        self.ina219=powerIna219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
-        self.ina219.configure(bus_adc=powerIna219.ADC_64SAMP, shunt_adc=powerIna219.ADC_64SAMP)
-        # End Ina219 start
 
 
         self.ratio=0
@@ -137,6 +129,7 @@ class AstraPwm():
 
     def end(self):
         self.stopAserv()
+        self.set_ratio(0)
         self.AstraTempFetcher.stop()
 
     def get_listTemp(self):
@@ -161,18 +154,10 @@ class AstraPwm():
         else:
             return False
 
-    def get_ina219(self):
-        return self.ina219
-
     def print_status(self):
         try:
-            shunt_voltage = self.ina219.shunt_voltage()
-            bus_voltage = self.ina219.voltage()
-            current = self.ina219.current()
-            power = self.ina219.power()
             TargetVoltage=self.ratio*12/100
-            energie=self.ina219.energie()/3600
-            print(f"{self.name}:{self.ratio} TargetVoltage={TargetVoltage}, =>Bus{bus_voltage:+.3f}V , Current: {current:+.3f}mA, Power: {power:.3f}mW, Power: {power:.3f}mWh")
+            print(f"{self.name}:{self.ratio} TargetVoltage={TargetVoltage}")
         except:
             print("!!!!!!!!!!!!!!!")
 
@@ -252,9 +237,9 @@ class AstraPwm():
             self.thread.start()
 
     def stopAserv(self):
-        self._running = False
-        #if hasattr(self, 'thread') and self.thread.is_alive():
-        #    self.thread.join()
+        if self._running:
+            self._running = False
+            self.thread.join()
 
     def isAserv(self):
         return self._running
@@ -300,9 +285,21 @@ class AstraPwm():
         
 
 if __name__ == '__main__':
+    import signal
+    import sys
 
+  
     astrapwm1=AstraPwm("AstraPwm1")
     astrapwm2=AstraPwm("AstraPwm2")
+    
+    def signal_handler(sig, frame):
+        print('You pressed Ctrl+C!')
+        astrapwm1.end()
+        astrapwm2.end()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
     modulo=50
     duty=0
     while True:

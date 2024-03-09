@@ -49,14 +49,14 @@ class AstraInaFetcher(threading.Thread):
     def stop(self):
         self.running=False
         self.join()
-        powerIna219._AstraInaFetcher=None
+        AstraIna._AstraInaFetcher=None
 
     def set_ina(self, ina):
         with self.listInalock:
             self.listIna.append(ina)
 
 
-class powerIna219:
+class AstraIna:
     RANGE_16V = INA219.RANGE_16V  # Range 0-16 volts
     RANGE_32V = INA219.RANGE_32V  # Range 0-32 volts
 
@@ -94,7 +94,7 @@ class powerIna219:
 
     @classmethod
     def getListNames(cls):
-        return powerIna219.ina219_set.keys()
+        return AstraIna.ina219_set.keys()
 
     @classmethod
     def exitAll(cls):
@@ -104,7 +104,7 @@ class powerIna219:
         self.ina219 = {"lasttime":0, "address":address, "voltage":0, "shunt_voltage":0, "current":0, "power":0, "energie":0}
         if name == "":
             if shunt_ohms==-1 or max_expected_amps==-1 or busnum==-1 or address==-1:
-                raise Exception("If name notspecified call powerIna219(shunt_ohms, max_expected_amps, busnum, address")
+                raise Exception("If name notspecified call AstraIna(shunt_ohms, max_expected_amps, busnum, address")
             self.ina219["ina219"]= INA219(shunt_ohms, max_expected_amps, busnum, address, log_level)
             self.configured=False
             self.name="Unkown"
@@ -131,7 +131,7 @@ class powerIna219:
 
     def configure(self, voltage_range=INA219.RANGE_32V, gain=INA219.GAIN_AUTO, bus_adc=INA219.ADC_12BIT, shunt_adc=INA219.ADC_12BIT):
         if self.configured:
-            raise Exception("powerIna219 already Configured")
+            raise Exception("AstraIna already Configured")
         else:
             self.configured=True
             self.ina219["ina219"].configure(voltage_range, gain, bus_adc, shunt_adc)
@@ -158,17 +158,17 @@ if __name__ == "__main__":
 
     def signal_handler(sig, frame):
         print('You pressed Ctrl+C!')
-        powerIna219.exitAll()
+        AstraIna.exitAll()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
     
     newSyntax=True
     if newSyntax:
-        print(powerIna219.getListNames())
+        print(AstraIna.getListNames())
         listIna=[]
-        for name in powerIna219.getListNames():
-            listIna.append(powerIna219(name=name))
+        for name in AstraIna.getListNames():
+            listIna.append(AstraIna(name=name))
         while True:
             for ina219 in listIna:
                 name=ina219.get_name()
@@ -197,7 +197,7 @@ if __name__ == "__main__":
             address = info["address"]
             shunt_ohms = info["shunt_ohms"]
             max_expected_amps = info["max_expected_amps"]
-            ina219_set[name]["ina219_object"] = powerIna219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
+            ina219_set[name]["ina219_object"] = AstraIna(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
             ina219_set[name]["ina219_object"].configure(bus_adc=INA219.ADC_64SAMP, shunt_adc=INA219.ADC_64SAMP)
 
         while True:
