@@ -1,7 +1,7 @@
 #!/bin/env python3
 # GPIO used PA17
 
-from powerIna219 import powerIna219
+from AstraIna import powerIna219
 from syspwm import SysPWM
 import threading
 import glob

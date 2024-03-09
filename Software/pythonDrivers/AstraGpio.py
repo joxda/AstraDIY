@@ -2,7 +2,7 @@
 # GPIO used PA17
 
 import gpiod
-from powerIna219 import powerIna219
+from AstraIna import powerIna219
 
 import time
 
