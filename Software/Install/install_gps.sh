@@ -8,7 +8,7 @@ systemctl restart gpsd
 systemctl restart chrony
 BOOTFILE=/boot/firmware/config.txt
 if ! grep -q "pps-gpio" ${BOOTFILE} ; then
-    echo "L'option pps-gpio n'est pas sur le fichier /boot/config.txt. Ajout en cours..."
+    echo "L'option pps-gpio n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
     cat >> ${BOOTFILE}  << "END1"
 
 # Begin AstrAlim gps
@@ -19,13 +19,6 @@ dtparam=uart0=on
 
 END1
    echo "Need to reboot for a full operational gps"
-else
-    echo "L'option existe déjà."
-    echo "Vérifier l'allocation à la pin gpio 25 du pps"
-    cat << "END2"
-dtoverlay=pps-gpio,gpiopin=25
-dtparam=uart0=on
-END2
 fi
 
 echo "End Installing gps"

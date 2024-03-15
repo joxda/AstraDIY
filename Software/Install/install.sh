@@ -1,16 +1,11 @@
 #!/bin/env bash
+FILESOURCE=$(dirname $0)
 
-sudo apt -y install gpsd chrony
-
-sudo apt-get -y install git
-sudo apt-get -y install python3-smbus  python3 python3-pip python3-testresources python3-setuptools python3-ipython ipython3 
-
-# Librairie gpiod
-sudo apt-get -y install python3-libgpiod
-# outils pour debug
-sudo apt -y install gpiod
+sudo ${FILESOURCE}/install_gps.sh
+sudo ${FILESOURCE}/install_scripts.sh
+sudo ${FILESOURCE}/install_bootConfig.sh
 
 # i2c 
-i2cdetect  -y 1
+#i2cdetect  -y 1
 
 
