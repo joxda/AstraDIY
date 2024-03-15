@@ -147,6 +147,10 @@ class AstraPwm():
         self.AstraTempFetcher = AstraTempFetcher.get_instance()
         self.tempname= self.AstraTempFetcher.get_default_temp()
 
+        # Temp Rosee setup
+        self.deltaTempRosee=+2
+        self.asservTempRosee = True
+
         # Aserv
         self.Kp = 2
         self.Ki = 0.0
@@ -199,7 +203,6 @@ class AstraPwm():
         return self.AstraTempFetcher.get_bmeTempRosee()
 
 
-
     def print_status(self):
         try:
             TargetVoltage=self.ratio*12/100
@@ -236,6 +239,21 @@ class AstraPwm():
     def get_cmdTemp(self):
         return self.cmdTemp
 
+    def set_deltaTempRosee(self, deltaTempRosee):
+        self.deltaTempRosee = deltaTempRosee
+
+    def set_asservTempRosee(self):
+        self.asservTempRosee = True
+
+    def unset_asservTempRosee(self):
+        self.asservTempRosee = False
+
+    def updateCmdTempfromTempRosee(self):
+        if self.asservTempRosee: 
+            self.cmdTemp = self.get_bmeTempRosee() + self.deltaTempRosee
+
+
+
     def _auto_tune_pid_lms(self):
         # Initialisation des coefficients PID
         step_time = 3.0
@@ -249,6 +267,7 @@ class AstraPwm():
         prev_error = 0.0
 
         while self._running:
+            self.updateCmdTempfromTempRosee()
             error = self.get_cmdTemp() - self.get_temp()
             integralList.append(error)
             # Calcul de l'intégrale glissante

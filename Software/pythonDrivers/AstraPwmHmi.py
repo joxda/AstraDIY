@@ -14,17 +14,24 @@ class DrewControl(QWidget):
     def __init__(self, name):
         super().__init__()
         self.name=name
-        self.buttonOn=True
+        self.buttonAsservOn=True
+        self.buttonRoseeConsigneOn=True
         self.AstraDrew = AstraPwm(name)
         self.initUI()
 
     def initUI(self):
         #####################################
         # button zone
-        # Button 
-        self.toggle_button = QPushButton(self.name+' Off', self)
-        self.toggle_button.setCheckable(True)
-        self.toggle_button.clicked.connect(self.toggle_action)
+        # Button Asserv
+        self.toggle_buttonAsserv = QPushButton(self.name+' Off', self)
+        self.toggle_buttonAsserv.setCheckable(True)
+        self.toggle_buttonAsserv.clicked.connect(self.toggle_actionAsserv)
+
+        # Asserv temp to rosee
+        self.toggle_buttonRoseeConsigne = QPushButton('RoseeConsigne Off', self)
+        self.toggle_buttonRoseeConsigne.setCheckable(True)
+        self.toggle_buttonRoseeConsigne.clicked.connect(self.toggle_actionRoseeConsigne)
+
 
         self.save_button = QPushButton('Save', self)
         self.save_button.setCheckable(True)
@@ -48,7 +55,8 @@ class DrewControl(QWidget):
         # Lay Out
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
-        firstCol.addWidget(self.toggle_button)        
+        firstCol.addWidget(self.toggle_buttonAsserv)        
+        firstCol.addWidget(self.toggle_buttonRoseeConsigne)        
         firstCol.addWidget(self.selTemp)        
         firstCol.addWidget(self.save_button)        
 
@@ -99,8 +107,9 @@ class DrewControl(QWidget):
         self.textRosee.setReadOnly(True)
 
         # Set defauls
-        self.set_buttonOff()
-        self.set_togglebuttonText()
+        self.set_buttonRoseeConsigneOff()
+        self.set_buttonAsservOff()
+        self.set_togglebuttonAsservText()
         self.textTempMesure.setText("10")
         self.textTempConsigne.setText("10")
 
@@ -123,19 +132,6 @@ class DrewControl(QWidget):
     def set_textPowerReadOnly(self, val):
         self.textPower.setReadOnly(val)
 
-    def set_togglebuttonText(self):
-        if self.buttonOn:
-            self.toggle_button.setText("auto "+self.name+' is On Set Off')
-            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
-            self.AstraDrew.startAserv()
-        else:
-            self.toggle_button.setText("auto "+self.name+' is Off Set On')
-            self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
-            if self.AstraDrew.isAserv():
-                self.AstraDrew.stopAserv()
-                self.AstraDrew.set_ratio(0)
-            self.textPower.setText(str(self.AstraDrew.get_ratio()))
-
     def set_associateTemp(self, index):
         selected_item_text = self.selTemp.itemText(index)
         self.AstraDrew.set_associateTemp(selected_item_text)
@@ -150,26 +146,68 @@ class DrewControl(QWidget):
         else:
             #print("self.AstraDrew.set_ratio(",ratio,")")
             self.AstraDrew.set_ratio(ratio)
-            self.set_buttonOff()
+            self.set_buttonAsservOff()
 
     def set_cmdtemp(self):
         self.AstraDrew.set_cmdTemp(self.textTempConsigne.getText())
+        self.set_buttonRoseeConsigneOff()
 
-    def toggle_action(self):
-        self.buttonOn = not(self.buttonOn)
-        self.set_togglebuttonText()
+    def set_togglebuttonRoseeConsigneText(self):
+        if self.buttonRoseeConsigneOn:
+            self.toggle_buttonRoseeConsigne.setText("Consigne Temp auto")
+            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+            self.AstraDrew.set_asservTempRosee()
+        else:
+            self.toggle_buttonRoseeConsigne.setText("Consigne Temp Manuel")
+            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+            self.AstraDrew.unset_asservTempRosee()
 
-    def set_buttonOff(self):
-        self.buttonOn = False
-        self.set_togglebuttonText()
+    def toggle_actionRoseeConsigne(self):
+        self.buttonRoseeConsigneOn = not(self.buttonRoseeConsigneOn)
+        self.set_togglebuttonRoseeConsigneText()
+
+    def set_buttonRoseeConsigneOff(self):
+        self.buttonRoseeConsigneOn = False
+        self.set_togglebuttonRoseeConsigneText()
+
+
+    def set_togglebuttonAsservText(self):
+        if self.buttonAsservOn:
+            self.toggle_buttonAsserv.setText("auto "+self.name+' is On Set Off')
+            self.toggle_buttonAsserv.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+            self.AstraDrew.startAserv()
+        else:
+            self.toggle_buttonAsserv.setText("auto "+self.name+' is Off Set On')
+            self.toggle_buttonAsserv.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+            if self.AstraDrew.isAserv():
+                self.AstraDrew.stopAserv()
+                self.AstraDrew.set_ratio(0)
+            self.textPower.setText(str(self.AstraDrew.get_ratio()))
+
+    def toggle_actionAsserv(self):
+        self.buttonAsservOn = not(self.buttonAsservOn)
+        self.set_togglebuttonAsservText()
+
+    def set_buttonAsservOff(self):
+        self.buttonAsservOn = False
+        self.set_togglebuttonAsservText()
 
     def update_text_fields(self):
-        if self.buttonOn:
+        if self.buttonAsservOn:
             ratio=self.AstraDrew.get_ratio()
             self.textPower.setText(f"{ratio:.1f}")
             self.textPower.setReadOnly(True)
         else:
             self.textPower.setReadOnly(False)
+
+        if self.buttonRoseeConsigneOn:
+            cmdTemp=self.AstraDrew.get_cmdTemp()
+            self.textTempConsigne.setText(f"{cmdTemp:.1f}")
+            self.textTempConsigne.setReadOnly(True)
+        else:
+            self.textTempConsigne.setReadOnly(False)
+
+ 
         temp=self.AstraDrew.get_temp()
         self.textTempMesure.setText(f"{temp:+.1f}")
         temp=self.AstraDrew.get_bmeTemp()
