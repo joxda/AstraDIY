@@ -23,7 +23,7 @@ class DrewControl(QWidget):
         #####################################
         # button zone
         # Button Asserv
-        self.toggle_buttonAsserv = QPushButton(self.name+' Off', self)
+        self.toggle_buttonAsserv = QPushButton(' Off', self)
         self.toggle_buttonAsserv.setCheckable(True)
         self.toggle_buttonAsserv.clicked.connect(self.toggle_actionAsserv)
 
@@ -127,7 +127,17 @@ class DrewControl(QWidget):
         allLayout.addLayout(firstCol)
         allLayout.addLayout(secCol)
         allLayout.addLayout(thirdCol)
-        self.setLayout(allLayout)
+
+        title = QLabel(self.name, self)  
+        title.setAlignment(Qt.AlignCenter)
+        title.adjustSize()
+
+        allLayoutTite = QVBoxLayout()
+        allLayoutTite.addWidget(title)
+        allLayoutTite.addLayout(allLayout)
+        self.setLayout(allLayoutTite)
+        
+
 
     def set_textPowerReadOnly(self, val):
         self.textPower.setReadOnly(val)
@@ -173,11 +183,11 @@ class DrewControl(QWidget):
 
     def set_togglebuttonAsservText(self):
         if self.buttonAsservOn:
-            self.toggle_buttonAsserv.setText("auto "+self.name+' is On Set Off')
+            self.toggle_buttonAsserv.setText("Auto is On Set Off")
             self.toggle_buttonAsserv.setStyleSheet("background-color: #f75457; border: 1px solid black;")
             self.AstraDrew.startAserv()
         else:
-            self.toggle_buttonAsserv.setText("auto "+self.name+' is Off Set On')
+            self.toggle_buttonAsserv.setText("Auto is Off Set On")
             self.toggle_buttonAsserv.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             if self.AstraDrew.isAserv():
                 self.AstraDrew.stopAserv()
@@ -201,6 +211,8 @@ class DrewControl(QWidget):
             self.textPower.setReadOnly(False)
 
         if self.buttonRoseeConsigneOn:
+            if not self.buttonAsservOn:
+                self.AstraDrew.updateCmdTempfromTempRosee()
             cmdTemp=self.AstraDrew.get_cmdTemp()
             self.textTempConsigne.setText(f"{cmdTemp:.1f}")
             self.textTempConsigne.setReadOnly(True)
