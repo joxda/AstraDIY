@@ -19,7 +19,8 @@ class DrewControl(QWidget):
         self.initUI()
 
     def initUI(self):
-  
+        #####################################
+        # button zone
         # Button 
         self.toggle_button = QPushButton(self.name+' Off', self)
         self.toggle_button.setCheckable(True)
@@ -43,7 +44,16 @@ class DrewControl(QWidget):
         self.selTemp.setCurrentIndex(defaultIndex)
         #self.set_associateTemp(0)
         self.selTemp.currentIndexChanged.connect(self.set_associateTemp)
+        
+        # Lay Out
+        firstCol = QVBoxLayout()
+        firstCol.setSpacing(0)
+        firstCol.addWidget(self.toggle_button)        
+        firstCol.addWidget(self.selTemp)        
+        firstCol.addWidget(self.save_button)        
 
+        #####################################
+        # Control zone
         # Power
         self.textPower = dataMenu("Power", "%")
         self.textPower.setFixedWidth(100,70,15)
@@ -61,6 +71,32 @@ class DrewControl(QWidget):
         self.textTempMesure = dataMenu("Measure", "°C")
         self.textTempMesure.setFixedWidth(100,70,15)
         self.textTempMesure.setReadOnly(True)
+        
+        # layout
+        secCol = QVBoxLayout()
+        secCol.setSpacing(0)
+        secCol.addWidget(self.textPower)        
+        secCol.addWidget(self.textTempConsigne)
+        secCol.addWidget(self.textTempMesure)        
+
+        #####################################
+        # Bme zone
+        # Control zone
+        # bme temp
+        self.textBmeTemp = dataMenu("envTemp", "°C")
+        self.textBmeTemp.setFixedWidth(100,70,15)
+        self.textBmeTemp.setReadOnly(True)
+        #self.textBmeTemp.setInputMask("000")
+
+        # Bme Hmidity
+        self.textHumidity = dataMenu("Humidity", "%")
+        self.textHumidity.setFixedWidth(100,70,15)
+        self.textHumidity.setReadOnly(True)
+
+        # Temp Rosee
+        self.textRosee = dataMenu("TempRosee", "°C")
+        self.textRosee.setFixedWidth(100,70,15)
+        self.textRosee.setReadOnly(True)
 
         # Set defauls
         self.set_buttonOff()
@@ -68,23 +104,20 @@ class DrewControl(QWidget):
         self.textTempMesure.setText("10")
         self.textTempConsigne.setText("10")
 
-        firstCol = QVBoxLayout()
-        firstCol.setSpacing(0)
-        firstCol.addWidget(self.toggle_button)        
-        firstCol.addWidget(self.selTemp)        
-        firstCol.addWidget(self.save_button)        
+        # layout
+        thirdCol = QVBoxLayout()
+        thirdCol.setSpacing(0)
+        thirdCol.addWidget(self.textBmeTemp)        
+        thirdCol.addWidget(self.textHumidity)
+        thirdCol.addWidget(self.textRosee)        
 
         # Layout
-        secCol = QVBoxLayout()
-        secCol.setSpacing(0)
-        secCol.addWidget(self.textPower)        
-        secCol.addWidget(self.textTempConsigne)
-        secCol.addWidget(self.textTempMesure)        
 
         allLayout = QHBoxLayout()
         allLayout.setSpacing(0)
         allLayout.addLayout(firstCol)
         allLayout.addLayout(secCol)
+        allLayout.addLayout(thirdCol)
         self.setLayout(allLayout)
 
     def set_textPowerReadOnly(self, val):
@@ -139,6 +172,12 @@ class DrewControl(QWidget):
             self.textPower.setReadOnly(False)
         temp=self.AstraDrew.get_temp()
         self.textTempMesure.setText(f"{temp:+.1f}")
+        temp=self.AstraDrew.get_bmeTemp()
+        self.textBmeTemp.setText(f"{temp:+.1f}")
+        hum=self.AstraDrew.get_bmeHumidity()
+        self.textHumidity.setText(f"{hum:+.1f}")
+        rosee=self.AstraDrew.get_bmeTempRosee()
+        self.textRosee.setText(f"{rosee:+.1f}")
 
 class MainWindow(QWidget):
     def __init__(self):
