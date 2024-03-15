@@ -168,15 +168,15 @@ bool IndiAstrAlimRelays::initProperties()
 	// We init parent properties first
 	INDI::DefaultDevice::initProperties();
 
-	IUFillNumber(&BCMpinsN[0], "BCMPIN08", "Relay 1", "%0.0f", 1, 27, 0, 26); // BCM26 = PIN37
-	IUFillNumber(&BCMpinsN[1], "BCMPIN06", "Relay 2", "%0.0f", 1, 27, 0, 20); // BCM20 = PIN38
-	IUFillNumber(&BCMpinsN[2], "BCMPIN07", "Relay 3", "%0.0f", 1, 27, 0, 21); // BCM21 = PIN40
+	IUFillNumber(&BCMpinsN[0], "BCMPIN08", "Relay 11", "%0.0f", 1, 27, 0, 26); // BCM26 = PIN37
+	IUFillNumber(&BCMpinsN[1], "BCMPIN06", "Relay 12", "%0.0f", 1, 27, 0, 20); // BCM20 = PIN38
+	IUFillNumber(&BCMpinsN[2], "BCMPIN07", "Relay 13", "%0.0f", 1, 27, 0, 21); // BCM21 = PIN40
 	IUFillNumberVector(&BCMpinsNP, BCMpinsN, 3, getDeviceName(), "BCMPINS", "BCM Pins", OPTIONS_TAB, IP_RW, 0, IPS_IDLE);
 
-	IUFillText(&RelayLabelsT[0], "RELAYLABEL01", "Relay 1", "Relay 1");
-	IUFillText(&RelayLabelsT[1], "RELAYLABEL02", "Relay 2", "Relay 2");
-	IUFillText(&RelayLabelsT[2], "RELAYLABEL03", "Relay 3", "Relay 3");
-	IUFillTextVector(&RelayLabelsTP, RelayLabelsT, 3, getDeviceName(), "RELAYLABELS", "Relay Labels", OPTIONS_TAB, IP_RW, 60, IPS_IDLE);
+	//IUFillText(&RelayLabelsT[0], "RELAYLABEL01", "Relay 21", "Relay 31");
+	//IUFillText(&RelayLabelsT[1], "RELAYLABEL02", "Relay 22", "Relay 32");
+	//IUFillText(&RelayLabelsT[2], "RELAYLABEL03", "Relay 23", "Relay 33");
+	//IUFillTextVector(&RelayLabelsTP, RelayLabelsT, 3, getDeviceName(), "RELAYLABELS", "Relay Labels", OPTIONS_TAB, IP_RW, 60, IPS_IDLE);
 
 	IUFillSwitch(&ActiveStateS[0], "ACTIVELO", "Low", ISS_ON);
 	IUFillSwitch(&ActiveStateS[1], "ACTIVEHI", "High", ISS_OFF);
@@ -186,33 +186,24 @@ bool IndiAstrAlimRelays::initProperties()
 	// load config before defining switches
 	defineNumber(&BCMpinsNP);
 	defineSwitch(&ActiveStateSP);
-	defineText(&RelayLabelsTP);
+	// DGE defineText(&RelayLabelsTP);
 	loadConfig();
 
 	IUFillSwitch(&Switch1S[0], "SW1ON", "ON", ISS_OFF);
 	IUFillSwitch(&Switch1S[1], "SW1OFF", "OFF", ISS_ON);
-	IUFillSwitchVector(&Switch1SP, Switch1S, 2, getDeviceName(), "SWITCH_1", RelayLabelsT[0].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	//DGE IUFillSwitchVector(&Switch1SP, Switch1S, 2, getDeviceName(), "SWITCH_1", RelayLabelsT[0].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	IUFillSwitchVector(&Switch1SP, Switch1S, 2, getDeviceName(), "SWITCH_1", "AstraDC1", MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
 
 	IUFillSwitch(&Switch2S[0], "SW2ON", "ON", ISS_OFF);
 	IUFillSwitch(&Switch2S[1], "SW2OFF", "OFF", ISS_ON);
-	IUFillSwitchVector(&Switch2SP, Switch2S, 2, getDeviceName(), "SWITCH_2", RelayLabelsT[1].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	// DGE IUFillSwitchVector(&Switch2SP, Switch2S, 2, getDeviceName(), "SWITCH_2", RelayLabelsT[1].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	IUFillSwitchVector(&Switch2SP, Switch2S, 2, getDeviceName(), "SWITCH_2", "AstraDC2", MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
 
 	IUFillSwitch(&Switch3S[0], "SW3ON", "ON", ISS_OFF);
 	IUFillSwitch(&Switch3S[1], "SW3OFF", "OFF", ISS_ON);
-	IUFillSwitchVector(&Switch3SP, Switch3S, 2, getDeviceName(), "SWITCH_3", RelayLabelsT[2].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	// DGE IUFillSwitchVector(&Switch3SP, Switch3S, 2, getDeviceName(), "SWITCH_3", RelayLabelsT[2].text, MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
+	IUFillSwitchVector(&Switch3SP, Switch3S, 2, getDeviceName(), "SWITCH_3", "AstraDC3", MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
 
-	/*
-	IUFillSwitch(&MasterSwitchS[0], "MASTERSWON", "ON", ISS_OFF);
-	IUFillSwitch(&MasterSwitchS[1], "MASTERSWOFF", "OFF", ISS_ON);
-	IUFillSwitchVector(&MasterSwitchSP, MasterSwitchS, 2, getDeviceName(), "MASTER_SWITCH", "ALL RELAYS", MAIN_CONTROL_TAB, IP_RW, ISR_1OFMANY, 0, IPS_IDLE);
-	*/
-
-	/*
-    IUFillLight(&SwitchStatusL[0], RelayLabelsT[0].text, "", IPS_IDLE);
-    IUFillLight(&SwitchStatusL[1], RelayLabelsT[1].text, "", IPS_IDLE);
-    IUFillLight(&SwitchStatusL[2], RelayLabelsT[2].text, "", IPS_IDLE);
-    IUFillLightVector(&SwitchStatusLP, SwitchStatusL, 3, getDeviceName(), "Status", "", MAIN_CONTROL_TAB, IPS_IDLE);
-	*/
 
 	// Set initial relays states to OFF
 	for (int i=0; i < 3; i++) {
@@ -232,8 +223,6 @@ bool IndiAstrAlimRelays::updateProperties()
 		defineSwitch(&Switch1SP);
 		defineSwitch(&Switch2SP);
 		defineSwitch(&Switch3SP);
-		//defineSwitch(&MasterSwitchSP);
-		//defineLight(&SwitchStatusLP);
 	}
 	else
 	{
@@ -241,8 +230,6 @@ bool IndiAstrAlimRelays::updateProperties()
 		deleteProperty(Switch1SP.name);
 		deleteProperty(Switch2SP.name);
 		deleteProperty(Switch3SP.name);
-		//deleteProperty(MasterSwitchSP.name);
-		//deleteProperty(SwitchStatusLP.name);
 	}
 	return true;
 }
@@ -383,8 +370,6 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch1SP.s = IPS_OK;
 				Switch1S[1].s = ISS_OFF;
 				IDSetSwitch(&Switch1SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 			if ( Switch1S[1].s == ISS_ON )
@@ -403,8 +388,6 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch1SP.s = IPS_IDLE;
 				Switch1S[0].s = ISS_OFF;
 				IDSetSwitch(&Switch1SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 		}
@@ -430,8 +413,6 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch2SP.s = IPS_OK;
 				Switch2S[1].s = ISS_OFF;
 				IDSetSwitch(&Switch2SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 			if ( Switch2S[1].s == ISS_ON )
@@ -450,8 +431,6 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch2SP.s = IPS_IDLE;
 				Switch2S[0].s = ISS_OFF;
 				IDSetSwitch(&Switch2SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 		}
@@ -477,8 +456,6 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch3SP.s = IPS_OK;
 				Switch3S[1].s = ISS_OFF;
 				IDSetSwitch(&Switch3SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 			if ( Switch3S[1].s == ISS_ON )
@@ -497,134 +474,10 @@ bool IndiAstrAlimRelays::ISNewSwitch (const char *dev, const char *name, ISState
 				Switch3SP.s = IPS_IDLE;
 				Switch3S[0].s = ISS_OFF;
 				IDSetSwitch(&Switch3SP, NULL);
-				//IUResetSwitch(&MasterSwitchSP);
-				//IDSetSwitch(&MasterSwitchSP, NULL);
 				return true;
 			}
 		}
 
-		/*
-		// handle master switch
-		if (!strcmp(name, MasterSwitchSP.name))
-		{
-			IUUpdateSwitch(&MasterSwitchSP, states, names, n);
-
-			if ( MasterSwitchS[0].s == ISS_ON )
-			{
-				rv = gpiod_line_set_value(gpio_relay1, activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #1");
-					Switch1SP.s = IPS_ALERT;
-					Switch1S[0].s = ISS_OFF;
-					IDSetSwitch(&Switch1SP, NULL);
-					return false;
-				}
-				relayState[0] =  activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #1 set to ON");
-				Switch1SP.s = IPS_OK;
-				Switch1S[0].s = ISS_ON;
-				Switch1S[1].s = ISS_OFF;
-				IDSetSwitch(&Switch1SP, NULL);
-
-				rv = gpiod_line_set_value(gpio_relay2, activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #2");
-					Switch2SP.s = IPS_ALERT;
-					Switch2S[0].s = ISS_OFF;
-					IDSetSwitch(&Switch2SP, NULL);
-					return false;
-				}
-				relayState[1] =  activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #2 set to ON");
-				Switch2SP.s = IPS_OK;
-				Switch2S[0].s = ISS_ON;
-				Switch2S[1].s = ISS_OFF;
-				IDSetSwitch(&Switch2SP, NULL);
-
-				rv = gpiod_line_set_value(gpio_relay3, activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #3");
-					Switch3SP.s = IPS_ALERT;
-					Switch3S[0].s = ISS_OFF;
-					IDSetSwitch(&Switch3SP, NULL);
-					return false;
-				}
-				relayState[2] =  activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #3 set to ON");
-				Switch3SP.s = IPS_OK;
-				Switch3S[0].s = ISS_ON;
-				Switch3S[1].s = ISS_OFF;
-				IDSetSwitch(&Switch3SP, NULL);
-
-				// master switch
-				DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays all set to ON");
-				MasterSwitchSP.s = IPS_OK;
-				MasterSwitchS[1].s = ISS_OFF;
-				IDSetSwitch(&MasterSwitchSP, NULL);
-				return true;
-			}
-			if ( MasterSwitchS[1].s == ISS_ON )
-			{
-				rv = gpiod_line_set_value(gpio_relay1, !activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #1");
-					Switch1SP.s = IPS_ALERT;
-					Switch1S[1].s = ISS_OFF;
-					IDSetSwitch(&Switch1SP, NULL);
-					return false;
-				}
-				relayState[0] =  !activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #1 set to OFF");
-				Switch1SP.s = IPS_IDLE;
-				Switch1S[0].s = ISS_OFF;
-				Switch1S[1].s = ISS_ON;
-				IDSetSwitch(&Switch1SP, NULL);
-
-				rv = gpiod_line_set_value(gpio_relay2, !activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #2");
-					Switch2SP.s = IPS_ALERT;
-					Switch2S[1].s = ISS_OFF;
-					IDSetSwitch(&Switch2SP, NULL);
-					return false;
-				}
-				relayState[1] =  !activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #2 set to OFF");
-				Switch2SP.s = IPS_IDLE;
-				Switch2S[0].s = ISS_OFF;
-				Switch2S[1].s = ISS_ON;
-				IDSetSwitch(&Switch2SP, NULL);
-
-				rv = gpiod_line_set_value(gpio_relay3, !activeState);
-				if (rv != 0)
-				{
-					DEBUG(INDI::Logger::DBG_ERROR, "Error setting AstrAlim Relay #3");
-					Switch3SP.s = IPS_ALERT;
-					Switch3S[1].s = ISS_OFF;
-					IDSetSwitch(&Switch3SP, NULL);
-					return false;
-				}
-				relayState[2] =  !activeState;
-				//DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays #3 set to OFF");
-				Switch3SP.s = IPS_IDLE;
-				Switch3S[0].s = ISS_OFF;
-				Switch3S[1].s = ISS_ON;
-				IDSetSwitch(&Switch3SP, NULL);
-
-				// master switch
-				DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Relays set all to OFF");
-				MasterSwitchSP.s = IPS_IDLE;
-				MasterSwitchS[0].s = ISS_OFF;
-				IDSetSwitch(&MasterSwitchSP, NULL);
-				return true;
-			}
-		}
-		*/
 	}
 	return INDI::DefaultDevice::ISNewSwitch (dev, name, states, names, n);
 }

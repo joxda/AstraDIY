@@ -60,14 +60,9 @@ private:
 	ISwitchVectorProperty Switch2SP;
 	ISwitch Switch3S[2];
 	ISwitchVectorProperty Switch3SP;
-	//ISwitch MasterSwitchS[2];
-	//ISwitchVectorProperty MasterSwitchSP;
-
-	//ILight SwitchStatusL[8];
-	//ILightVectorProperty SwitchStatusLP;
 
 	int activeState = 0;
-	int relayState[8]; // relayState is mission critical to maintain relays status between reconnections. initially set to !activeState
+	int relayState[3]; // relayState is mission critical to maintain relays status between reconnections. initially set to !activeState
 	int pollingTime = 1000;
 
 	const char* gpio_chip_path = "/dev/gpiochip4";

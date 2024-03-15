@@ -11,6 +11,9 @@ import numpy as np
 import json
 
 
+from bme280_lib import readBME280All
+import math
+
 
 class AstraTempFetcher(threading.Thread):
     _AstraTempFetcher=None
@@ -21,6 +24,11 @@ class AstraTempFetcher(threading.Thread):
         self.tableTemp = {}
         self.lock = threading.Lock()
         self.lock.acquire(True)
+        self.bme_temperature=0
+        self.bme_pressure=0
+        self.bme_humidity=0
+        self.bme_tempRosee=0
+
 
     @classmethod
     def get_instance(cls):
@@ -69,6 +77,17 @@ class AstraTempFetcher(threading.Thread):
                         time.sleep(0.1)
                 if returnval != 998:
                     self.tableTemp[name]["val"] = returnval
+            try:
+                self.bme_temperature,self.bme_pressure,self.bme_humidity = readBME280All()
+                # ref : https://fr.planetcalc.com/248/
+                # ref : https://fr.wikipedia.org/wiki/Point_de_ros%C3%A9e
+                a=17.27
+                b=237.7
+                facteur=((a*self.bme_temperature) / (b+self.bme_temperature)) + math.log(self.bme_humidity/100)
+                self.bme_tempRosee = b*(facteur)/(a-(facteur))
+            except Exception as e:
+                print(e)
+                pass
             time.sleep(0.5)
             
     def stop(self):
@@ -87,6 +106,19 @@ class AstraTempFetcher(threading.Thread):
         with self.lock:
             tempNames = list(self.tableTemp.keys())
             return self.tableTemp[tempNames[0]]["val"]
+
+    def get_bmeTemp(self):
+        return self.bme_temperature
+
+    def get_bmePressure(self):
+        return self.bme_pressure
+
+    def get_bmeHumidity(self):
+        return self.bme_humidity
+
+    def get_bmeTempRosee(self):
+        return self.bme_tempRosee
+
 
 
 class AstraPwm():
@@ -153,6 +185,20 @@ class AstraPwm():
             return True
         else:
             return False
+
+    def get_bmeTemp(self):
+        return self.AstraTempFetcher.get_bmeTemp()
+
+    def get_bmePressure(self):
+        return self.AstraTempFetcher.get_bmePressure()
+
+    def get_bmeHumidity(self):
+        return self.AstraTempFetcher.get_bmeHumidity()
+
+    def get_bmeTempRosee(self):
+        return self.AstraTempFetcher.get_bmeTempRosee()
+
+
 
     def print_status(self):
         try:
@@ -310,6 +356,7 @@ if __name__ == '__main__':
         for name in astrapwm2.get_listTemp():
             astrapwm2.set_associateTemp(name)
             print(name,"=", astrapwm2.get_temp())
+        print("bmeTemp=", astrapwm1.get_bmeTemp(), "bmeHum=", astrapwm1.get_bmeHumidity(), "Rosee=", astrapwm1.get_bmeTempRosee())
         duty=(duty+1)%101
         time.sleep(1)
     

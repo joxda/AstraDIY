@@ -11,6 +11,6 @@ echo "========Chrony offsets==========="
 ./survDateOffset.py
 echo
 echo "========bme280==========="
-#./bme280_lib.py
+./bme280_lib.py
 echo "========================="
 
