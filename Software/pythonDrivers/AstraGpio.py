@@ -24,9 +24,9 @@ class AstraGpio():
         if self.gpioline == None: 
             self.gpioline = gpiod.find_line(f"PIN{pin:d}")
         if self.gpioline == None: 
-            self.gpioline = gpiod.find_line(f"GPIO{pin2gpio[pin]:d}")
+            self.gpioline = gpiod.find_line(f"GPIO{self.pin2gpio[pin]:d}")
         if self.gpioline == None: 
-            self.gpioline = gpiod.find_line(f"GPIO{pin2gpio[pin]:d}")
+            self.gpioline = gpiod.find_line(f"GPIO{self.pin2gpio[pin]:d}")
         if self.gpioline == None:
             raise Exception("Gpio Not Found")
         #self.gpioline.request(consumer='AstrAlim', type=gpiod.LINE_REQ_DIR_OUT, default_vals=[0])
