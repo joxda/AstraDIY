@@ -19,7 +19,7 @@ if [ -d  $INSTALLDIR ]
 then
 	rm -rf $INSTALLDIR
 fi
-mkdir -p $INSTALDIR
+mkdir -p $INSTALLDIR
 for FILE in Astra*.py ina219.py syspwm.py bme280_lib.py
 do
 	cp ${HOMEDIR}/pythonDrivers/${FILE} $INSTALLDIR
