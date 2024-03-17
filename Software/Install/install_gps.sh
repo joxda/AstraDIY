@@ -1,7 +1,7 @@
 #!/bin/bash
 FILESOURCE=$(dirname $0)
 echo "Begin Installing gps"
-apt install -y gpsd chrony
+apt install -y gpsd chrony pps-tools
 cp ${FILESOURCE}/gps/etc_default_gpsd /etc/default/gpsd
 cp ${FILESOURCE}/gps/etc_chrony_conf.d_chronyastralim.conf /etc/chrony/conf.d/chronyastralim.conf
 systemctl restart gpsd
