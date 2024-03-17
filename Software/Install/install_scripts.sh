@@ -16,7 +16,7 @@ sudo apt -y install gpiod i2c-tools
 
 # Installer les fichiers 
 mkdir -p /opt/AstrAlim
-for FILE in Astra*.py ina219.py syspwm.py
+for FILE in Astra*.py ina219.py syspwm.py bme280_lib.py
 do
 	cp ${HOMEDIR}/pythonDrivers/${FILE} $INSTALLDIR
 done
