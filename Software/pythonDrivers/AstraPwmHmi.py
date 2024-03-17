@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraPwm import AstraPwm
-from AstraDataMenu import dataMenu
+from AstraCommonHmi import dataMenu
 
 
 class DrewControl(QWidget):
@@ -43,11 +43,15 @@ class DrewControl(QWidget):
         curtempname = self.AstraDrew. get_associateTemp()
         defaultIndex=0
         curindex=0
-        for tempId in self.AstraDrew.get_listTemp():
-            self.selTemp.addItem(tempId)
-            if tempId == curtempname:
-                defaultIndex=curindex
-            curindex=curindex+1
+        if len(self.AstraDrew.get_listTemp()) > 0:
+            for tempId in self.AstraDrew.get_listTemp():
+                self.selTemp.addItem(tempId)
+                if tempId == curtempname:
+                    defaultIndex=curindex
+                curindex=curindex+1
+        else:
+            self.selTemp.addItem("None Temp")
+            defaultIndex=0
         self.selTemp.setCurrentIndex(defaultIndex)
         #self.set_associateTemp(0)
         self.selTemp.currentIndexChanged.connect(self.set_associateTemp)

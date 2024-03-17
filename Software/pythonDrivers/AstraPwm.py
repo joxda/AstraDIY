@@ -23,7 +23,8 @@ class AstraTempFetcher(threading.Thread):
         self.running = False
         self.tableTemp = {}
         self.lock = threading.Lock()
-        self.lock.acquire(True)
+        #self.lock.acquire(True)
+        self.bme_present=False
         self.bme_temperature=0
         self.bme_pressure=0
         self.bme_humidity=0
@@ -42,22 +43,35 @@ class AstraTempFetcher(threading.Thread):
         if not(cls._AstraTempFetcher is None):
             cls._AstraTempFetcher.stop()
 
+    def _update_templist(self):
+        # Search devices
+        for path in glob.glob('/sys/bus/w1/devices/28*'):
+            name = os.path.basename(path)
+            filename = path + "/w1_slave"
+            if os.access(filename, os.R_OK):
+                with self.lock:
+                    if os.access(filename, os.R_OK) and not name in self.tableTemp:
+                        self.tableTemp[name] = {}
+                        self.tableTemp[name]["val"] = 0
+                        self.tableTemp[name]["file"] = path + "/w1_slave"
+
+    def get_listTemp(self):
+        with self.lock:
+            return list(self.tableTemp.keys())
+
+    def get_temp(self, tempname):
+        with self.lock:
+            val = self.tableTemp[tempname]["val"]
+        return val
+
     def run(self):
         def _read_temp(path):
             f = open(path, 'r')
             lines = f.readlines()
             f.close()
             return lines
-        # Search devices
-        for path in glob.glob('/sys/bus/w1/devices/28*'):
-            name = os.path.basename(path)
-            filename = path + "/w1_slave"
-            if os.access(filename, os.R_OK):
-                self.tableTemp[name] = {}
-                self.tableTemp[name]["val"] = 0
-                self.tableTemp[name]["file"] = path + "/w1_slave"
+        self._update_templist()
         self.running = True
-        self.lock.release()
         # Run acquisition loop
         while self.running:
             for name in self.tableTemp.keys():
@@ -85,27 +99,28 @@ class AstraTempFetcher(threading.Thread):
                 b=237.7
                 facteur=((a*self.bme_temperature) / (b+self.bme_temperature)) + math.log(self.bme_humidity/100)
                 self.bme_tempRosee = b*(facteur)/(a-(facteur))
+                self.bme_present = True
             except Exception as e:
-                print(e)
+                # print(e)
+                self.bme_present=False
                 pass
-            time.sleep(0.5)
+            self._update_templist()
+            time.sleep(1)
+
             
     def stop(self):
         self.running = False
         self.join()
         AstraTempFetcher._AstraTempFetcher = None
 
-    def get_listTemp(self):
-        with self.lock:
-            return list(self.tableTemp.keys())
-
-    def get_temp(self, tempname):
-        return self.tableTemp[tempname]["val"]
 
     def get_default_temp(self):
         with self.lock:
             tempNames = list(self.tableTemp.keys())
-            return self.tableTemp[tempNames[0]]["val"]
+            if len(tempNames) > 0:
+                return self.tableTemp[tempNames[0]]["val"]
+            else:
+                return None
 
     def get_bmeTemp(self):
         return self.bme_temperature
@@ -119,6 +134,8 @@ class AstraTempFetcher(threading.Thread):
     def get_bmeTempRosee(self):
         return self.bme_tempRosee
 
+    def isPresent_bme(self):
+        return self.bme_present
 
 
 class AstraPwm():
@@ -172,7 +189,10 @@ class AstraPwm():
        return self.AstraTempFetcher.get_listTemp()
 
     def get_temp(self):
-        return self.AstraTempFetcher.get_temp(self.tempname)
+        if self.tempname:
+            return self.AstraTempFetcher.get_temp(self.tempname)
+        else:
+            return 0
 
     def get_associateTemp(self):
         return self.tempname

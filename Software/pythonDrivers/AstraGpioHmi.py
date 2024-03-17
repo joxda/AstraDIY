@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraGpio import AstraGpio
-from AstraDataMenu import dataMenu
+from AstraCommonHmi import dataMenu
 
 
 class GpioControl(QWidget):
