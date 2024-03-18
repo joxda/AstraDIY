@@ -20,15 +20,16 @@ class dataMenu(QWidget):
         self.type_label = QLabel(self.label, self)  
         self.type_label.setAlignment(Qt.AlignCenter)
         self.type_label.adjustSize()
-        #self.type_label.setFixedHeight(50)
+        self.type_label.setFixedHeight(50)
 
         self.line_edit = QLineEdit(self)
         self.line_edit.adjustSize()
         #self.line_edit.setInputMask('9999')  # Limite les caractères à des chiffres uniquement
-        #self.line_edit.setFixedHeight(50)
+        self.line_edit.setFixedHeight(50)
 
         self.unit_label = QLabel(self.unit, self)  
         self.unit_label.setAlignment(Qt.AlignCenter)
+        self.type_label.setFixedHeight(50)
         self.unit_label.adjustSize()
         
         #self.unit_label.setFixedHeight(50)

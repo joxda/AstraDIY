@@ -16,6 +16,8 @@ import math
 
 
 class AstraTempFetcher(threading.Thread):
+    ROSEEUNAVAIL=-100
+    TEMPUNAVAIL=100
     _AstraTempFetcher=None
     
     def __init__(self):
@@ -28,7 +30,7 @@ class AstraTempFetcher(threading.Thread):
         self.bme_temperature=0
         self.bme_pressure=0
         self.bme_humidity=0
-        self.bme_tempRosee=0
+        self.bme_tempRosee=self.TEMPUNAVAIL
 
 
     @classmethod
@@ -61,7 +63,9 @@ class AstraTempFetcher(threading.Thread):
 
     def get_temp(self, tempname):
         with self.lock:
-            val = self.tableTemp[tempname]["val"]
+            val = self.TEMPUNAVAIL
+            if tempname in  self.tableTemp:
+                val = self.tableTemp[tempname]["val"]
         return val
 
     def run(self):
@@ -76,7 +80,7 @@ class AstraTempFetcher(threading.Thread):
         while self.running:
             for name in self.tableTemp.keys():
                 tempFile = self.tableTemp[name]["file"]
-                retries = 5
+                retries = 10
                 returnval = 998
                 while (returnval == 998) and (retries > 0):
                     lines = _read_temp(tempFile)
@@ -91,6 +95,8 @@ class AstraTempFetcher(threading.Thread):
                         time.sleep(0.1)
                 if returnval != 998:
                     self.tableTemp[name]["val"] = returnval
+                else:
+                    self.tableTemp[name]["val"] = self.TEMPUNAVAIL
             try:
                 self.bme_temperature,self.bme_pressure,self.bme_humidity = readBME280All()
                 # ref : https://fr.planetcalc.com/248/
@@ -103,6 +109,8 @@ class AstraTempFetcher(threading.Thread):
             except Exception as e:
                 # print(e)
                 self.bme_present=False
+                self.bme_tempRosee=self.ROSEEUNAVAIL
+                self.bme_temperature=self.TEMPUNAVAIL
                 pass
             self._update_templist()
             time.sleep(1)
@@ -139,6 +147,8 @@ class AstraTempFetcher(threading.Thread):
 
 
 class AstraPwm():
+    ROSEEUNAVAIL=AstraTempFetcher.ROSEEUNAVAIL
+    TEMPUNAVAIL=AstraTempFetcher.TEMPUNAVAIL
     astraGpioSet = { 
                 "AstraPwm1": {"chip":2, "pwm":1},
                 "AstraPwm2": {"chip":2, "pwm":2}
@@ -169,9 +179,11 @@ class AstraPwm():
         self.asservTempRosee = True
 
         # Aserv
+        self.autoUpdateKpKiKd=True
         self.Kp = 2
         self.Ki = 0.0
         self.Kd = 0.0
+
         self.cmdTemp=0
         self.poids_objet = 1
         self.puissance_max = 12*3
@@ -185,14 +197,70 @@ class AstraPwm():
         self.set_ratio(0)
         self.AstraTempFetcher.stop()
 
+    ######## Accessors 
+    def get_name(self):
+        return self.name
+
+    # Control temperature command
+    def set_cmdTemp(self, set_cmdTemp):
+        try:
+            self.cmdTemp = int(set_cmdTemp)
+        except:
+            pass
+
+    def get_cmdTemp(self):
+        return self.cmdTemp
+
+    def get_deltaTempRosee(self):
+        return self.deltaTempRosee
+
+    def set_asservTempRosee(self):
+        self.asservTempRosee = True
+
+    def unset_asservTempRosee(self):
+        self.asservTempRosee = False
+
+    def set_deltaTempRosee(self, deltaTempRosee):
+        self.deltaTempRosee=deltaTempRosee
+
+    def updateCmdTempfromTempRosee(self):
+        if self.asservTempRosee: 
+            self.cmdTemp = self.get_bmeTempRosee() + self.deltaTempRosee
+
+    # Asserv Parameters
+    def get_autoUpdateKpKiKd(self):
+        return self.autoUpdateKpKiKd
+
+    def set_autoUpdateKpKiKd(self):
+        self.autoUpdateKpKiKd=True
+
+    def unset_autoUpdateKpKiKd(self):
+        self.autoUpdateKpKiKd=False
+
+    def get_Kp(self):
+        return self.Kp
+
+    def set_kp(self, Kp):
+        self.Kp=max(0, min(self.Kp, 100))
+
+    def get_Ki(self):
+        return self.Ki
+
+    def set_Ki(self, Ki):
+        self.Ki=max(0, min(self.Ki, 100))
+
+    def get_Kd(self):
+        return self.Kd
+
+    def set_Kd(self, Kd):
+        self.Kd=max(0, min(self.Kd, 100))
+
+    # Associated sensor
     def get_listTemp(self):
        return self.AstraTempFetcher.get_listTemp()
 
     def get_temp(self):
-        if self.tempname:
-            return self.AstraTempFetcher.get_temp(self.tempname)
-        else:
-            return 0
+        return self.AstraTempFetcher.get_temp(self.tempname)
 
     def get_associateTemp(self):
         return self.tempname
@@ -210,6 +278,7 @@ class AstraPwm():
         else:
             return False
 
+    # Environmental sensor
     def get_bmeTemp(self):
         return self.AstraTempFetcher.get_bmeTemp()
 
@@ -222,7 +291,6 @@ class AstraPwm():
     def get_bmeTempRosee(self):
         return self.AstraTempFetcher.get_bmeTempRosee()
 
-
     def print_status(self):
         try:
             TargetVoltage=self.ratio*12/100
@@ -231,48 +299,15 @@ class AstraPwm():
             print("!!!!!!!!!!!!!!!")
 
     # set output
-    def get_name(self):
-        return self.gpioline.name()
-
-    def get_name(self):
-        return self.name
-
     def set_ratio(self, ratio):
         self.ratio=max(0, min(100,int(ratio*10)/10))
         duty=self.period_ms*self.ratio/100.0
         self.pwm.set_duty_ms(duty)
         #print("AstraPwm.set_ratio(",self.ratio,")","=>",duty)
-        
 
     def get_ratio(self):
         #print("AstraPwm.get_ratio(",self.ratio,")")
         return int(self.ratio)
-
-
-    # Control temperature
-    def set_cmdTemp(self, set_cmdTemp):
-        try:
-            self.cmdTemp = int(set_cmdTemp)
-        except:
-            pass
-
-    def get_cmdTemp(self):
-        return self.cmdTemp
-
-    def set_deltaTempRosee(self, deltaTempRosee):
-        self.deltaTempRosee = deltaTempRosee
-
-    def set_asservTempRosee(self):
-        self.asservTempRosee = True
-
-    def unset_asservTempRosee(self):
-        self.asservTempRosee = False
-
-    def updateCmdTempfromTempRosee(self):
-        if self.asservTempRosee: 
-            self.cmdTemp = self.get_bmeTempRosee() + self.deltaTempRosee
-
-
 
     def _auto_tune_pid_lms(self):
         # Initialisation des coefficients PID
@@ -300,7 +335,7 @@ class AstraPwm():
             pid_output = max(0, min(pid_output, 100))
 
             # Mise à jour des coefficients PID si la sortie n'est pas saturée
-            if pid_output < 100 and pid_output > -100:
+            if self.autoUpdateKpKiKd and pid_output < 100 and pid_output > -100:
                 self.Kp -= learning_rate * error
                 self.Ki += learning_rate * integral
                 self.Kd -= learning_rate * (error - prev_error)
@@ -310,7 +345,7 @@ class AstraPwm():
                 self.Kd = max(0, min(self.Kd, 100))
 
             pid_output = max(0, min(pid_output, 100))
-            print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), f"pid={pid_output:.2f}   Kp={self.Kp:.3f} Ki={self.Ki:.3f} Kd={self.Kd:.3f} int:{integral:.1f}")
+            #print("cmd=", self.get_cmdTemp(), "Temp=", self.get_temp(), f"pid={pid_output:.2f}   Kp={self.Kp:.3f} Ki={self.Ki:.3f} Kd={self.Kd:.3f} int:{integral:.1f}")
             self.set_ratio(pid_output)
             time.sleep(step_time)
         self.set_ratio(0)
@@ -348,8 +383,6 @@ class AstraPwm():
         else:
             return False
 
-
-
     def save(self):
         variables_dict = {}
         variables_dict = {
@@ -365,9 +398,6 @@ class AstraPwm():
         chemin_complet = chemin_complet / filename
         with open(chemin_complet, "w") as f:
             json.dump(variables_dict, f, indent=4)
-
-
-        
 
 if __name__ == '__main__':
     import signal
