@@ -9,4 +9,15 @@ It contains :
 ## Gps :
 See [Installation process](Software/Install/README.md)
 ## Software Python Drivers:
+### Manipulating GPIO :
+   * AstraGpio.py
+   * AstraGpioHmi.py
+### Manage DrewHeater :
+   * AstraPwm.py
+   * AstraPwmHmi.py
+### Monitoring Power consumption :
+   * AstraIna.py
+   * AstraInaHmi.py
 ## Usage with kstars/Indi:
+## Licences :
+   * The current softwares are provided under the following [AstrAlim/LICENSE](licence)
