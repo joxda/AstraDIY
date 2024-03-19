@@ -4,10 +4,6 @@ echo "Begin Installing bootconfig"
 
 BOOTFILE=/boot/firmware/config.txt
 
-usb_max_current_enable=1
-
-
-
 if ! grep -q "dtparam=i2c_arm=on" ${BOOTFILE} ; then
     echo "L'option dtparam=i2c_arm=on n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
     cat >> ${BOOTFILE}  << "END1"
