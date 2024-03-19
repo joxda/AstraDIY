@@ -20,4 +20,4 @@ See [Installation process](Software/Install/README.md)
    * AstraInaHmi.py
 ## Usage with kstars/Indi:
 ## Licences :
-   * The current softwares are provided under the following [AstrAlim/LICENSE](licence)
+   * The current softwares are provided under the following [AstrAlim/LICENSE](AstrAlim/LICENSE)
