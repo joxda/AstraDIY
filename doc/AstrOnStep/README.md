@@ -1,3 +1,7 @@
+Project is published here : <https://oshwlab.com/pololamag/astronstep>
+
+![AstrOnStepHeadMU.png](./AstrOnStepHeadMU.png)
+
 # Description
 
 Designed for amateur astronomers and inspired by the [OnStep](https://onstep.groups.io/g/main) hardware solution, [AstrOnStep](https://oshwlab.com/pololamag/astronstep) is an add-on designed for the Raspberry Pi 5 or 4 minicomputer equipped with the [AstrAlim](https://oshwlab.com/pololamag/astralim) card, specifically designed to manage the motorized aspects of astrophotography sessions. The idea for this electronic card came from a few members of the [Vélizy astronomy club](https://www.astro-velizy.fr/) (France) who wanted to rationalize and simplify the use of cables for photography nocturnal deep sky, with an open source solution.
