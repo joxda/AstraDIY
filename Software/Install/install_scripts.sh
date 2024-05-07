@@ -24,6 +24,18 @@ for FILE in Astra*.py ina219.py syspwm.py bme280_lib.py
 do
 	cp ${HOMEDIR}/pythonDrivers/${FILE} $INSTALLDIR
 done
-chmod +x $INSTALLDIR/Astra*.py
+chmod a+rx  $INSTALLDIR/Astra*.py
+chmod og-w $INSTALLDIR/Astra*.py
+
+STARTALLSCRIPT=$INSTALLDIR/AstraStartAllHmi.sh
+LISTHMI="AstraGpioHmi.py AstraPwmHmi.py AstraInaHmi.py"
+echo "#!/bin/bash" > $STARTALLSCRIPT
+for FILE in $LISTHMI
+do
+	echo "$INSTALLDIR/$FILE &" >> $STARTALLSCRIPT
+done
+chmod a+rx $STARTALLSCRIPT
+chmod og-w $STARTALLSCRIPT
+
 echo "Begin Installing scripts"
 
