@@ -165,7 +165,8 @@ class AstraPwm():
         self.period_ms=1
         #print("Init pwm:",self.inacaract["chip"],self.inacaract["pwm"])
         self.pwm = SysPWM(self.inacaract["chip"],self.inacaract["pwm"])
-        self.pwm.set_duty_ms(0)
+        if self.pwm.get_periode_ms() > 0:
+            self.pwm.set_duty_ms(0)
         self.pwm.set_periode_ms(self.period_ms)
         self.pwm.enable()
         atexit.register(self.pwm.disable)
@@ -266,11 +267,15 @@ class AstraPwm():
         return self.tempname
 
     def _set_associateTemp(self, name):
-        if name in self.AstraTempFetcher.get_listTemp():
-            self.tempname = name
-            return True
-        else:
-            return False
+        retval = False
+        iteration=4
+        while ((iteration > 0) and (not(retval))):
+            if name in self.AstraTempFetcher.get_listTemp():
+                self.tempname = name
+                retval= True
+            else:
+                time.sleep(0.1)
+        return retval
 
     def set_associateTemp(self, name):
         if self._set_associateTemp(name):
