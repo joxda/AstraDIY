@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraGpio import AstraGpio
-from AstraCommonHmi import dataMenu
+from AstraCommonHmi import dataMenu, AnimatedToggleButton
 
 
 class GpioControl(QWidget):
@@ -26,12 +26,7 @@ class GpioControl(QWidget):
         self.TextName.setFixedWidth(100)
 
         # Bouton On/Off
-        self.toggle_button = QPushButton('Off set On', self)
-        self.toggle_button.setFixedWidth(100)
-        self.toggle_button.setStyleSheet("border: 1px solid black;") 
-        self.set_togglebuttonText()
-        self.toggle_button.setCheckable(True)
-        self.toggle_button.clicked.connect(self.toggle_action)
+        self.toggle_button = AnimatedToggleButton(self, self.gpio.is_on(), self.toggle_action)
 
         # Layout
         layout = QHBoxLayout()
@@ -40,18 +35,11 @@ class GpioControl(QWidget):
         layout.addWidget(self.toggle_button)
         self.setLayout(layout)
 
-    def set_togglebuttonText(self):
-        if self.gpio.is_on():
-            self.toggle_button.setText('On Set Off')
-            self.toggle_button.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+    def toggle_action(self, state):
+        if self.toggle_button.slider.isChecked():
+            self.gpio.set_on()
         else:
-            self.toggle_button.setText('Off Set On')
-            self.toggle_button.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;") 
-
-
-    def toggle_action(self):
-        self.gpio.switch_onoff()
-        self.set_togglebuttonText()
+            self.gpio.set_off()
         self.gpio.print_status()
 
 class MainWindow(QWidget):

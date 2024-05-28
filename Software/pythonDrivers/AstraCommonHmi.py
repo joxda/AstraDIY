@@ -67,10 +67,11 @@ class dataMenu(QWidget):
         self.line_edit.textEdited.connect(doSomething)
 
 class AnimatedToggleButton(QWidget):
-    def __init__(self, parent=None, initial_state=False):
+    def __init__(self, parent=None, initial_state=False, toggle_callback=None):
         super().__init__(parent)
         self.setFixedSize(100, 50)
-
+        self.toggle_callback = toggle_callback  # Save the callback function
+        
         # Background
         self.background = QPushButton('', self)
         self.background.setFixedSize(100, 50)
@@ -99,7 +100,8 @@ class AnimatedToggleButton(QWidget):
         self.set_initial_state(initial_state)
 
     def set_initial_state(self, state):
-        if state:
+        self.slider.setChecked(state)
+        if self.slider.isChecked():
             self.slider.setGeometry(QRect(50, 0, 50, 50))
             self.background.setStyleSheet("background-color: green; border-radius: 25px;")
             self.slider.setText('On')
@@ -107,7 +109,10 @@ class AnimatedToggleButton(QWidget):
             self.slider.setGeometry(QRect(0, 0, 50, 50))
             self.background.setStyleSheet("background-color: red; border-radius: 25px;")
             self.slider.setText('Off')
-
+            self.animation.setStartValue(QRect(50, 0, 50, 50))
+            self.animation.setEndValue(QRect(0, 0, 50, 50))
+            self.animation.start()
+            
     def toggle(self):
         if self.slider.isChecked():
             self.animation.setStartValue(QRect(0, 0, 50, 50))
@@ -121,18 +126,30 @@ class AnimatedToggleButton(QWidget):
             self.slider.setText('Off')
         self.animation.start()
 
+        # Call the callback function if provided
+        if self.toggle_callback:
+            self.toggle_callback(self.slider.isChecked())
+
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = QWidget()
-    
+
+    def on_toggle(state):
+        print(f'Toggle state changed to: {"On" if state else "Off"}')
+
+ 
     # Création du bouton de bascule animé avec un état initial
-    animated_toggle_button = AnimatedToggleButton(window, initial_state=True)
+    animated_toggle_button1 = AnimatedToggleButton(window, initial_state=False, toggle_callback=on_toggle)
+    animated_toggle_button2 = AnimatedToggleButton(window, initial_state=True, toggle_callback=on_toggle)
     data_menu = dataMenu('toto', 'ms')
     
     # Layout
     layout = QVBoxLayout()
-    layout.addWidget(animated_toggle_button)
+    layout.addWidget(animated_toggle_button1)
+    layout.addWidget(animated_toggle_button2)
     layout.addWidget(data_menu)
     window.setLayout(layout)
     
