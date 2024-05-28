@@ -5,7 +5,7 @@ import signal
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPropertyAnimation, QRect
 
 
 
@@ -66,4 +66,80 @@ class dataMenu(QWidget):
     def connect(self, doSomething):
         self.line_edit.textEdited.connect(doSomething)
 
+class AnimatedToggleButton(QWidget):
+    def __init__(self, parent=None, initial_state=False):
+        super().__init__(parent)
+        self.setFixedSize(100, 50)
+
+        # Background
+        self.background = QPushButton('', self)
+        self.background.setFixedSize(100, 50)
+        self.background.setStyleSheet("background-color: lightgray; border-radius: 25px;")
+        self.background.setEnabled(False)
+
+        # Slider
+        self.slider = QPushButton('', self)
+        self.slider.setFixedSize(50, 50)
+        self.slider.setStyleSheet("background-color: white; border-radius: 25px;")
+        self.slider.setCheckable(True)
+        self.slider.setChecked(initial_state)
+        self.slider.clicked.connect(self.toggle)
+
+        # Animation
+        self.animation = QPropertyAnimation(self.slider, b"geometry")
+        self.animation.setDuration(250)  # Duration of the animation in milliseconds
+
+        # Layout
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.background)
+        layout.addWidget(self.slider)
+
+        # Set initial state
+        self.set_initial_state(initial_state)
+
+    def set_initial_state(self, state):
+        if state:
+            self.slider.setGeometry(QRect(50, 0, 50, 50))
+            self.background.setStyleSheet("background-color: green; border-radius: 25px;")
+            self.slider.setText('On')
+        else:
+            self.slider.setGeometry(QRect(0, 0, 50, 50))
+            self.background.setStyleSheet("background-color: red; border-radius: 25px;")
+            self.slider.setText('Off')
+
+    def toggle(self):
+        if self.slider.isChecked():
+            self.animation.setStartValue(QRect(0, 0, 50, 50))
+            self.animation.setEndValue(QRect(50, 0, 50, 50))
+            self.background.setStyleSheet("background-color: green; border-radius: 25px;")
+            self.slider.setText('On')
+        else:
+            self.animation.setStartValue(QRect(50, 0, 50, 50))
+            self.animation.setEndValue(QRect(0, 0, 50, 50))
+            self.background.setStyleSheet("background-color: red; border-radius: 25px;")
+            self.slider.setText('Off')
+        self.animation.start()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = QWidget()
+    
+    # Création du bouton de bascule animé avec un état initial
+    animated_toggle_button = AnimatedToggleButton(window, initial_state=True)
+    data_menu = dataMenu('toto', 'ms')
+    
+    # Layout
+    layout = QVBoxLayout()
+    layout.addWidget(animated_toggle_button)
+    layout.addWidget(data_menu)
+    window.setLayout(layout)
+    
+    # Configuration de la fenêtre principale
+    window.setWindowTitle('Animated Toggle Button and data menue')
+    window.resize(200, 100)
+    window.show()
+    
+    sys.exit(app.exec_())
 
