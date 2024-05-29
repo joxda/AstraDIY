@@ -67,21 +67,23 @@ class dataMenu(QWidget):
         self.line_edit.textEdited.connect(doSomething)
 
 class AnimatedToggleButton(QWidget):
-    def __init__(self, parent=None, initial_state=False, toggle_callback=None):
+    def __init__(self, parent=None, initial_state=False, toggle_callback=None, size=30):
         super().__init__(parent)
-        self.setFixedSize(100, 50)
+        self.size=size
+        self.radius=str(int(size/2))
+        self.setFixedSize(self.size*2, self.size)
         self.toggle_callback = toggle_callback  # Save the callback function
         
         # Background
         self.background = QPushButton('', self)
-        self.background.setFixedSize(100, 50)
-        self.background.setStyleSheet("background-color: lightgray; border-radius: 25px;")
+        self.background.setFixedSize(self.size*2, self.size)
+        self.background.setStyleSheet("background-color: lightgray; border-radius: "+self.radius+"px;")
         self.background.setEnabled(False)
 
         # Slider
         self.slider = QPushButton('', self)
-        self.slider.setFixedSize(50, 50)
-        self.slider.setStyleSheet("background-color: white; border-radius: 25px;")
+        self.slider.setFixedSize(self.size, self.size)
+        self.slider.setStyleSheet("background-color: white; border-radius: "+self.radius+"px;")
         self.slider.setCheckable(True)
         self.slider.setChecked(initial_state)
         self.slider.clicked.connect(self.toggle)
@@ -102,35 +104,42 @@ class AnimatedToggleButton(QWidget):
     def set_initial_state(self, state):
         self.slider.setChecked(state)
         if self.slider.isChecked():
-            self.slider.setGeometry(QRect(50, 0, 50, 50))
-            self.background.setStyleSheet("background-color: green; border-radius: 25px;")
+            self.slider.setGeometry(QRect(self.size, 0, self.size, self.size))
+            self.background.setStyleSheet("background-color: green; border-radius: "+self.radius+"px;")
             self.slider.setText('On')
         else:
-            self.slider.setGeometry(QRect(0, 0, 50, 50))
-            self.background.setStyleSheet("background-color: red; border-radius: 25px;")
+            self.slider.setGeometry(QRect(0, 0, self.size, self.size))
+            self.background.setStyleSheet("background-color: red; border-radius: "+self.radius+"px;")
             self.slider.setText('Off')
-            self.animation.setStartValue(QRect(50, 0, 50, 50))
-            self.animation.setEndValue(QRect(0, 0, 50, 50))
+            self.animation.setStartValue(QRect(self.size, 0, self.size, self.size))
+            self.animation.setEndValue(QRect(0, 0, self.size, self.size))
             self.animation.start()
-            
+
     def toggle(self):
+        self.update(self.slider.isChecked())
+        
+    def toggle(self, state):
         if self.slider.isChecked():
-            self.animation.setStartValue(QRect(0, 0, 50, 50))
-            self.animation.setEndValue(QRect(50, 0, 50, 50))
-            self.background.setStyleSheet("background-color: green; border-radius: 25px;")
+            self.animation.setStartValue(QRect(0, 0, self.size, self.size))
+            self.animation.setEndValue(QRect(self.size, 0, self.size, self.size))
+            self.background.setStyleSheet("background-color: green; border-radius: "+self.radius+"px;")
             self.slider.setText('On')
         else:
-            self.animation.setStartValue(QRect(50, 0, 50, 50))
-            self.animation.setEndValue(QRect(0, 0, 50, 50))
-            self.background.setStyleSheet("background-color: red; border-radius: 25px;")
+            self.animation.setStartValue(QRect(self.size, 0, self.size, self.size))
+            self.animation.setEndValue(QRect(0, 0, self.size, self.size))
+            self.background.setStyleSheet("background-color: red; border-radius: "+self.radius+"px;")
             self.slider.setText('Off')
         self.animation.start()
 
         # Call the callback function if provided
         if self.toggle_callback:
             self.toggle_callback(self.slider.isChecked())
+            
+    def isChecked(self):
+        return self.slider.isChecked()
 
-
+    def setState(self, state):
+        self.update(state)
 
 
 if __name__ == '__main__':

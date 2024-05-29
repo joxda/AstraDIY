@@ -7,32 +7,33 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraPwm import AstraPwm
-from AstraCommonHmi import dataMenu
+from AstraCommonHmi import dataMenu, AnimatedToggleButton
 
 
 class DrewControl(QWidget):
     def __init__(self, name):
         super().__init__()
         self.name=name
-        self.buttonAsservOn=True
+        self.buttonAsservOn=False
         self.buttonRoseeConsigneOn=True
         self.AstraDrew = AstraPwm(name)
-        self.initUI()
 
-    def initUI(self):
         #####################################
         # button zone
         # Button Asserv
-        self.toggle_buttonAsserv = QPushButton(' Off', self)
-        self.toggle_buttonAsserv.setCheckable(True)
-        self.toggle_buttonAsserv.clicked.connect(self.toggle_actionAsserv)
+        self.toggle_buttonAsserv = AnimatedToggleButton(parent=self, toggle_callback=self.set_togglebuttonAsserv, initial_state=self.buttonAsservOn)
+        labelButtonAsserv = QLabel("Asserv Temp", self)  
+        labelButtonAsserv.setAlignment(Qt.AlignCenter)
+        labelButtonAsserv.setFixedHeight(50)
+        labelButtonAsserv.adjustSize()
 
         # Asserv temp to rosee
-        self.toggle_buttonRoseeConsigne = QPushButton('RoseeConsigne Off', self)
-        self.toggle_buttonRoseeConsigne.setCheckable(True)
-        self.toggle_buttonRoseeConsigne.clicked.connect(self.toggle_actionRoseeConsigne)
-
-
+        self.toggle_buttonRoseeConsigne = AnimatedToggleButton(parent=self, toggle_callback=self.set_togglebuttonRoseeConsigne, initial_state=self.buttonRoseeConsigneOn)
+        labelButtonRosee = QLabel("Asserv Consigne", self)  
+        labelButtonRosee.setAlignment(Qt.AlignCenter)
+        labelButtonRosee.setFixedHeight(50)
+        labelButtonRosee.adjustSize()
+        
         self.save_button = QPushButton('Save', self)
         self.save_button.setCheckable(True)
         self.save_button.clicked.connect(self.AstraDrew.save)
@@ -59,7 +60,9 @@ class DrewControl(QWidget):
         # Lay Out
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
+        firstCol.addWidget(labelButtonAsserv)        
         firstCol.addWidget(self.toggle_buttonAsserv)        
+        firstCol.addWidget(labelButtonRosee)        
         firstCol.addWidget(self.toggle_buttonRoseeConsigne)        
         firstCol.addWidget(self.selTemp)        
         firstCol.addWidget(self.save_button)        
@@ -111,9 +114,8 @@ class DrewControl(QWidget):
         self.textRosee.setReadOnly(True)
 
         # Set defauls
-        self.set_buttonRoseeConsigneOff()
-        self.set_buttonAsservOff()
-        self.set_togglebuttonAsservText()
+        self.set_togglebuttonRoseeConsigne(False)
+        self.set_togglebuttonAsserv(False)
         self.textTempMesure.setText("10")
         self.textTempConsigne.setText("10")
 
@@ -182,51 +184,26 @@ class DrewControl(QWidget):
         else:
             #print("self.AstraDrew.set_ratio(",ratio,")")
             self.AstraDrew.set_ratio(ratio)
-            self.set_buttonAsservOff()
 
     def set_cmdtemp(self):
         self.AstraDrew.set_cmdTemp(self.textTempConsigne.getText())
-        self.set_buttonRoseeConsigneOff()
 
-    def set_togglebuttonRoseeConsigneText(self):
-        if self.buttonRoseeConsigneOn:
-            self.toggle_buttonRoseeConsigne.setText("Consigne Temp auto")
-            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+    def set_togglebuttonRoseeConsigne(self, state):
+        self.buttonRoseeConsigneOn = state
+        if state:
             self.AstraDrew.set_asservTempRosee()
         else:
-            self.toggle_buttonRoseeConsigne.setText("Consigne Temp Manuel")
-            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             self.AstraDrew.unset_asservTempRosee()
 
-    def toggle_actionRoseeConsigne(self):
-        self.buttonRoseeConsigneOn = not(self.buttonRoseeConsigneOn)
-        self.set_togglebuttonRoseeConsigneText()
-
-    def set_buttonRoseeConsigneOff(self):
-        self.buttonRoseeConsigneOn = False
-        self.set_togglebuttonRoseeConsigneText()
-
-
-    def set_togglebuttonAsservText(self):
-        if self.buttonAsservOn:
-            self.toggle_buttonAsserv.setText("Auto is On Set Off")
-            self.toggle_buttonAsserv.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+    def set_togglebuttonAsserv(self, state):
+        self.buttonAsservOn = state
+        if state:
             self.AstraDrew.startAserv()
         else:
-            self.toggle_buttonAsserv.setText("Auto is Off Set On")
-            self.toggle_buttonAsserv.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             if self.AstraDrew.isAserv():
                 self.AstraDrew.stopAserv()
                 self.AstraDrew.set_ratio(0)
             self.textPower.setText(str(self.AstraDrew.get_ratio()))
-
-    def toggle_actionAsserv(self):
-        self.buttonAsservOn = not(self.buttonAsservOn)
-        self.set_togglebuttonAsservText()
-
-    def set_buttonAsservOff(self):
-        self.buttonAsservOn = False
-        self.set_togglebuttonAsservText()
 
     def update_text_fields(self):
         if self.AstraDrew.get_autoUpdateKpKiKd():
