@@ -38,12 +38,18 @@ class AstraInaFetcher(threading.Thread):
                     else:
                         curtime=time.perf_counter()
                         deltatime=curtime-ina["lasttime"]
-                        ina["voltage"] = ina["ina219"].voltage()
-                        ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
-                        ina["current"] = ina["ina219"].current()
-                        ina["power"] = ina["ina219"].power()
-                        ina["energie"] += ina["power"] * deltatime
-                        ina["lasttime"]=curtime
+                        if ina["confgurationSet"]:
+                            if ina["configured"]:
+                                ina["voltage"] = ina["ina219"].voltage()
+                                ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
+                                ina["current"] = ina["ina219"].current()
+                                ina["power"] = ina["ina219"].power()
+                                ina["energie"] += ina["power"] * deltatime
+                                ina["lasttime"]=curtime
+                            else:
+                                if ina["ina219"].ping():
+                                    ina["ina219"].configure(ina["voltage_range"], ina["gain"], ina["bus_adc"], ina["shunt_adc"])
+                                    ina["configured"] = True
                     #print(ina["address"]," voltage", ina["voltage"])
 
     def stop(self):
@@ -80,15 +86,17 @@ class AstraIna:
 
     # Dictionnaire associant les noms aux informations sur les capteurs INA219
     ina219_set = {
-            "AstraDc1": {"ispwm":False, "busnum":1, "address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 37, 
+            "AstraDc1": {"ispwm":False, "busnum":1, "address": 0x41, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 37, 
                          "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
-            "AstraDc2": {"ispwm":False, "busnum":1, "address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 38, 
+            "AstraDc2": {"ispwm":False, "busnum":1, "address": 0x44, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 38, 
                          "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
-            "AstraDc3": {"ispwm":False, "busnum":1, "address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6, "pin": 40, 
+            "AstraDc3": {"ispwm":False, "busnum":1, "address": 0x46, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 40, 
                          "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
-            "AstraPwm1": {"ispwm":True, "busnum":1, "address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":1, 
+            "AstraPwm1": {"ispwm":True, "busnum":1, "address": 0x49, "shunt_ohms": 0.01, "max_expected_amps": 6, "chip":2, "pwm":1, 
                          "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
-            "AstraPwm2": {"ispwm":True, "busnum":1, "address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6, "chip":2, "pwm":2, 
+            "AstraPwm2": {"ispwm":True, "busnum":1, "address": 0x4d, "shunt_ohms": 0.01, "max_expected_amps": 6, "chip":2, "pwm":2, 
+                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
+            "AstOnStep": {"ispwm":True, "busnum":1, "address": 0x40, "shunt_ohms": 0.005, "max_expected_amps": 6, "chip":2, "pwm":2, 
                          "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP }
     }
 
@@ -101,7 +109,7 @@ class AstraIna:
         AstraInaFetcher.exitAll()
 
     def __init__(self, shunt_ohms=-1, max_expected_amps=-1, busnum=-1, address=-1, name="", log_level=logging.ERROR):
-        self.ina219 = {"lasttime":0, "address":address, "voltage":0, "shunt_voltage":0, "current":0, "power":0, "energie":0}
+        self.ina219 = {"confgurationSet":False, "configured":False, "pinged":False, "lasttime":0, "address":address, "voltage":0, "shunt_voltage":0, "current":0, "power":0, "energie":0}
         if name == "":
             if shunt_ohms==-1 or max_expected_amps==-1 or busnum==-1 or address==-1:
                 raise Exception("If name notspecified call AstraIna(shunt_ohms, max_expected_amps, busnum, address")
@@ -134,7 +142,11 @@ class AstraIna:
             raise Exception("AstraIna already Configured")
         else:
             self.configured=True
-            self.ina219["ina219"].configure(voltage_range, gain, bus_adc, shunt_adc)
+            self.ina219["voltage_range"]=voltage_range
+            self.ina219["gain"]=gain
+            self.ina219["bus_adc"]=bus_adc
+            self.ina219["shunt_adc"]=shunt_adc
+            self.ina219["confgurationSet"]=True
             self.AstraInaFetcher.set_ina(self.ina219)
 
     def voltage(self):

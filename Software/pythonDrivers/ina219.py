@@ -19,6 +19,16 @@ class I2C:
         self.bus=smbus.SMBus(self.busnum)
         self.retry=4
 
+    def ping(self):
+        returnval=False
+        try:
+         self.bus.read_byte(self.address)
+         returnval=True
+        except:
+          pass
+        return returnval
+          
+        
     def writeList(self, register, register_bytes):
         """Write bytes to the specified register."""
         #print(f"Wrote to 0x%02X register 0x%02X: %s" % (self.address, register, register_bytes))
@@ -238,6 +248,9 @@ class INA219:
         self._min_device_current_lsb = self._calculate_min_current_lsb()
         self._gain = None
         self._auto_gain_enabled = False
+
+    def ping(self):
+        return self._i2c.ping()
 
     def configure(self, voltage_range=RANGE_32V, gain=GAIN_AUTO,
                   bus_adc=ADC_12BIT, shunt_adc=ADC_12BIT):
