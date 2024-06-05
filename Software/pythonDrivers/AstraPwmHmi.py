@@ -15,7 +15,7 @@ class DrewControl(QWidget):
         super().__init__()
         self.name=name
         self.buttonAsservOn=False
-        self.buttonRoseeConsigneOn=True
+        self.buttonRoseeConsigneOn=False
         self.AstraDrew = AstraPwm(name)
 
         #####################################
@@ -255,7 +255,7 @@ class DrewControl(QWidget):
             rosee=self.AstraDrew.get_bmeTempRosee()
             self.textRosee.setText(f"{rosee:+.1f}")
 
-class MainWindow(QWidget):
+class MainPwmWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -273,7 +273,7 @@ class MainWindow(QWidget):
 
 
         self.setLayout(self.main_layout)
-        self.setWindowTitle('AstrAlim')
+        self.setWindowTitle('AstrAlimPwm')
 
 
         # Créer un timer pour mettre à jour tous les widgets toutes les secondes
@@ -286,7 +286,7 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = MainPwmWindow()
     main_window.show()
 
 

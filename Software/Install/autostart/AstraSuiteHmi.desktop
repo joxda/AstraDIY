@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=AstraSuite
+Exec=/opt/AstrAlim/AstraSuiteHmi.py
+

@@ -28,7 +28,7 @@ chmod a+rx  $INSTALLDIR/Astra*.py
 chmod og-w $INSTALLDIR/Astra*.py
 
 STARTALLSCRIPT=$INSTALLDIR/AstraStartAllHmi.sh
-LISTHMI="AstraGpioHmi.py AstraPwmHmi.py AstraInaHmi.py"
+LISTHMI="AstraGpioHmi.py AstraPwmHmi.py AstraInaHmi.py AstraTabHmi.py"
 echo "#!/bin/bash" > $STARTALLSCRIPT
 for FILE in $LISTHMI
 do

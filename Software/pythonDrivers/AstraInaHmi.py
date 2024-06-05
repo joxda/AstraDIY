@@ -2,8 +2,9 @@
 import sys
 import os
 import signal
+import math
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QGridLayout
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraIna import AstraIna
@@ -14,9 +15,6 @@ class ina219Frame(QFrame):
     def __init__(self, ina219):
         super().__init__()
         self.ina219 = ina219
-        self.initUI()
-        
-    def initUI(self):
         self.setStyleSheet("border: 1px solid black;") 
         
         label = QLabel(self.ina219.get_name()) 
@@ -45,7 +43,7 @@ class ina219Frame(QFrame):
         layout.setSpacing(0)
         layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
         self.setLayout(layout)
-        self.setFixedSize(230, 160)
+        #self.setFixedSize(230, 160)
 
     def update_text_fields(self):
         bus_voltage = self.ina219.voltage()
@@ -64,25 +62,30 @@ class ina219Frame(QFrame):
             energie=int(energie/1000)
             self.textEnergie.setText(f"{energie}k")
 
-class MainWindow(QWidget):
+class MainInaWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
 
-
-    def initUI(self):
-        self.main_layout = QVBoxLayout()
+        # Layout de type grille
+        self.main_layout = QGridLayout()
         self.main_layout.setSpacing(0)
 
         self.widgets = []
+        listIna =  AstraIna.getListNames()
 
-        for name in AstraIna.getListNames():
-            wiget=ina219Frame(AstraIna(name=name))
-            self.widgets.append(wiget)
-            self.main_layout.addWidget(wiget)
+        # Calculer le nombre de lignes et de colonnes pour obtenir une forme carrée
+        n = len(listIna)
+        rows = cols = math.ceil(math.sqrt(n))
+
+        for index, name in enumerate(listIna):
+            row = index // cols
+            col = index % cols
+            widget=ina219Frame(AstraIna(name=name))
+            self.widgets.append(widget)
+            self.main_layout.addWidget(widget, row, col)
         
         self.setLayout(self.main_layout)
-        self.setWindowTitle('AstrAlim')
+        self.setWindowTitle('AstrAlimIna')
 
 
         # Créer un timer pour mettre à jour tous les widgets toutes les secondes
@@ -96,7 +99,7 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = MainInaWindow()
     main_window.show()
 
 

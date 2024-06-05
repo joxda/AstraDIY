@@ -3,20 +3,18 @@ import sys
 import os
 import signal
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QFrame
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt, QPropertyAnimation, QRect
 
 
 
 class dataMenu(QWidget):
-    def __init__(self, label, unit):
+    def __init__(self, label, unit, parent=None):
+        super().__init__(parent)
         self.unit=unit
         self.label=label
-        super().__init__()
-        self.initUI()
 
-    def initUI(self):
         self.type_label = QLabel(self.label, self)  
         self.type_label.setAlignment(Qt.AlignCenter)
         self.type_label.adjustSize()
@@ -41,9 +39,17 @@ class dataMenu(QWidget):
         layout.addWidget(self.unit_label)
         layout.setSpacing(0)
         layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
-        self.setLayout(layout)
-        self.adjustSize()
+
+        # Frame pour les assembler
+        self.subWindow = QFrame()
+        self.subWindow.setFrameShape(QFrame.Box)
+        self.subWindow.setFrameShadow(QFrame.Raised)
+        self.subWindow.setLayout(layout)
         
+        mainLayout = QVBoxLayout()
+        mainLayout.addWidget(self.subWindow)
+        self.setLayout(mainLayout)
+        self.adjustSize()
 
     def setText(self, value):
         self.line_edit.setText(value)
@@ -62,6 +68,10 @@ class dataMenu(QWidget):
 
     def setReadOnly(self, mybool):
         self.line_edit.setReadOnly(mybool)
+        if mybool:
+            self.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+        else:
+            self.setStyleSheet("")
 
     def connect(self, doSomething):
         self.line_edit.textEdited.connect(doSomething)
@@ -97,6 +107,7 @@ class AnimatedToggleButton(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.background)
         layout.addWidget(self.slider)
+
 
         # Set initial state
         self.set_initial_state(initial_state)

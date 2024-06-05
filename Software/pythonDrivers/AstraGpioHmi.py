@@ -33,7 +33,17 @@ class GpioControl(QWidget):
         layout.setSpacing(0)
         layout.addWidget(self.TextName)
         layout.addWidget(self.toggle_button)
-        self.setLayout(layout)
+
+        # Frame pour les assembler
+        self.subWindow = QFrame()
+        self.subWindow.setFrameShape(QFrame.Box)
+        self.subWindow.setFrameShadow(QFrame.Raised)
+        self.subWindow.setLayout(layout)
+        
+        mainLayout = QVBoxLayout()
+        mainLayout.addWidget(self.subWindow)
+        self.setLayout(mainLayout)
+        self.adjustSize()
 
     def toggle_action(self, state):
         if self.toggle_button.slider.isChecked():
@@ -42,7 +52,7 @@ class GpioControl(QWidget):
             self.gpio.set_off()
         self.gpio.print_status()
 
-class MainWindow(QWidget):
+class MainGpioWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -59,11 +69,11 @@ class MainWindow(QWidget):
             self.main_layout.addWidget(wiget)
         
         self.setLayout(self.main_layout)
-        self.setWindowTitle('AstrAlim')
+        self.setWindowTitle('AstrAlimGpio')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = MainGpioWindow()
     main_window.show()
 
 
