@@ -15,7 +15,7 @@ class ina219Frame(QFrame):
     def __init__(self, ina219):
         super().__init__()
         self.ina219 = ina219
-        self.setStyleSheet("border: 1px solid black;") 
+        #self.setStyleSheet("border: 1px solid black;") 
         
         label = QLabel(self.ina219.get_name()) 
         label.setAlignment(Qt.AlignCenter)        
@@ -41,9 +41,10 @@ class ina219Frame(QFrame):
         layout.addWidget(self.textCurrent)
         layout.addWidget(self.textEnergie)
         layout.setSpacing(0)
-        layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
+        #layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
         self.setLayout(layout)
         #self.setFixedSize(230, 160)
+        self.setStyleSheet("border: 1px solid black;") 
 
     def update_text_fields(self):
         bus_voltage = self.ina219.voltage()

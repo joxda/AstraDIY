@@ -101,11 +101,10 @@ class DrewControl(QWidget):
         self.textBmeTemp = dataMenu("envTemp", "°C")
         self.textBmeTemp.setFixedWidth(100,70,20)
         self.textBmeTemp.setReadOnly(True)
-        #self.textBmeTemp.setInputMask("000")
 
         # Bme Hmidity
         self.textHumidity = dataMenu("Humidity", "%")
-        self.textHumidity.setFixedWidth(100,70,15)
+        self.textHumidity.setFixedWidth(100,70,20)
         self.textHumidity.setReadOnly(True)
 
         # Temp Rosee
@@ -148,7 +147,6 @@ class DrewControl(QWidget):
         forthCol.addWidget(self.textKd)        
 
         # Layout
-
         allLayout = QHBoxLayout()
         allLayout.setSpacing(0)
         allLayout.addLayout(firstCol)
@@ -239,7 +237,7 @@ class DrewControl(QWidget):
             self.textTempMesure.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         else:
             self.textTempMesure.setText(f"{tempsensor:+.1f}")
-            self.textTempMesure.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+            self.textTempMesure.setStyleSheet("")
 
         tempbme=self.AstraDrew.get_bmeTemp()
         if tempbme == self.AstraDrew.TEMPUNAVAIL:
@@ -248,8 +246,8 @@ class DrewControl(QWidget):
             self.textHumidity.setText(f"N/A")
             self.textRosee.setText(f"N/A")
         else:
+            self.textBmeTemp.restaureStyleSheet()
             self.textBmeTemp.setText(f"{tempbme:+.1f}")
-            self.textBmeTemp.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             hum=self.AstraDrew.get_bmeHumidity()
             self.textHumidity.setText(f"{hum:+.1f}")
             rosee=self.AstraDrew.get_bmeTempRosee()
@@ -288,7 +286,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainPwmWindow()
     main_window.show()
-
-
     sys.exit(app.exec_())
 

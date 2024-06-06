@@ -10,10 +10,12 @@ from PyQt5.QtCore import Qt, QPropertyAnimation, QRect
 
 
 class dataMenu(QWidget):
-    def __init__(self, label, unit, parent=None):
+    def __init__(self, label, unit, readOnly=True, parent=None):
         super().__init__(parent)
         self.unit=unit
         self.label=label
+        self.readOnly=readOnly
+        self.dataAvailable=False
 
         self.type_label = QLabel(self.label, self)  
         self.type_label.setAlignment(Qt.AlignCenter)
@@ -31,6 +33,16 @@ class dataMenu(QWidget):
         self.type_label.setFixedHeight(50)
         self.unit_label.adjustSize()
         
+        self.type_label.setStyleSheet("""
+                QLabel {
+                    border: none;
+                }
+            """)
+        self.unit_label.setStyleSheet("""
+                QLabel {
+                    border: none;
+                }
+            """)  
         #self.unit_label.setFixedHeight(50)
 
         # Mettre le QLabel et le QLineEdit dans un QHBoxLayout pour les aligner horizontalement
@@ -51,12 +63,10 @@ class dataMenu(QWidget):
         mainLayout.addWidget(self.subWindow)
         self.setLayout(mainLayout)
         self.adjustSize()
-        self.setStyleSheet("""
-                QLineEdit {
-                    border: 1px solid black;
-                }
-            """)
+        self.restaureStyleSheet()
+        
     def setText(self, value):
+        self.setDataAvailable(True)
         self.line_edit.setText(value)
 
     def setInputMask(self, value):
@@ -69,24 +79,45 @@ class dataMenu(QWidget):
         self.type_label.setFixedWidth(w1)
         self.line_edit.setFixedWidth(w2)
         self.unit_label.setFixedWidth(w3)
-        pass
+    
 
-    def setReadOnly(self, mybool):
-        self.line_edit.setReadOnly(mybool)
-        if mybool:
-            #self.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
-            self.setStyleSheet("""
-                QLineEdit {
-                    background: transparent;
-                    color: black;
-                }
-            """)
+    def restaureStyleSheet(self):
+        if self.readOnly:
+            if self.dataAvailable:
+                self.line_edit.setStyleSheet("""
+                    QLineEdit {
+                        background: transparent;
+                        background-color: transparent;
+                        border: none;
+                        color: black;
+                    }
+                """)
+            else:
+                self.line_edit.setText(f"NAvail")
+                self.line_edit.setStyleSheet("""
+                    QLineEdit {
+                        background: transparent;
+                        background-color: #f75457;
+                        border: none;
+                        color: black;
+                    }
+                """)
         else:
-            self.setStyleSheet("""
+            self.line_edit.setStyleSheet("""
                 QLineEdit {
                     border: 1px solid black;
                 }
             """)
+            
+    def setReadOnly(self, readOnly):
+        self.readOnly=readOnly
+        self.line_edit.setReadOnly(self.readOnly)
+        self.restaureStyleSheet()
+
+    def setDataAvailable(self, dataAvailable=True):
+        if not (self.dataAvailable == dataAvailable):
+            self.dataAvailable=dataAvailable
+            self.restaureStyleSheet()
 
     def connect(self, doSomething):
         self.line_edit.textEdited.connect(doSomething)
@@ -94,6 +125,7 @@ class dataMenu(QWidget):
 class AnimatedToggleButton(QWidget):
     def __init__(self, parent=None, initial_state=False, toggle_callback=None, size=30):
         super().__init__(parent)
+        self.state=initial_state
         self.size=size
         self.radius=str(int(size/2))
         self.setFixedSize(self.size*2, self.size)
@@ -104,15 +136,14 @@ class AnimatedToggleButton(QWidget):
         self.background.setFixedSize(self.size*2, self.size)
         self.background.setStyleSheet("background-color: lightgray; border-radius: "+self.radius+"px;")
         self.background.setCheckable(True)
-        self.background.setChecked(initial_state)
-        self.background.clicked.connect(self.toggle)
+        self.background.clicked.connect(self._toggle)
         
         # Slider
         self.slider = QPushButton('', self)
         self.slider.setFixedSize(self.size, self.size)
         self.slider.setStyleSheet("background-color: white; border-radius: "+self.radius+"px;")
         self.slider.setEnabled(True)
-        self.slider.clicked.connect(self.toggle_bis)
+        self.slider.clicked.connect(self._toggle)
 
         # Animation
         self.animation = QPropertyAnimation(self.slider, b"geometry")
@@ -125,21 +156,22 @@ class AnimatedToggleButton(QWidget):
         layout.addWidget(self.slider)
 
         # Set initial state
+        self.background.setChecked(initial_state)
         self.slider.setChecked(initial_state)
-        self.toggle(initial_state)
+        if initial_state:
+            self.slider.setGeometry(0, 0, self.size, self.size)
+        else:
+            self.slider.setGeometry(self.size, 0, self.size, self.size)
+        self._updateUI(self.state)
         self.toggle_callback = toggle_callback  # Save the callback function
 
 
-    def toggle_bis(self):
-        current_state = self.background.isChecked()
-        self.background.setChecked(not current_state)
-        self.toggle(not current_state)
+    def _toggle(self):
+        self.state = not self.state
+        self._updateUIAndCallback(self.state)
         
-    def toggle(self):
-        self.update(self.background.isChecked())
-        
-    def toggle(self, state):
-        if self.background.isChecked():
+    def _updateUI(self, state):
+        if state:
             self.animation.setStartValue(QRect(0, 0, self.size, self.size))
             self.animation.setEndValue(QRect(self.size, 0, self.size, self.size))
             self.background.setStyleSheet("background-color: green; border-radius: "+self.radius+"px;")
@@ -151,36 +183,52 @@ class AnimatedToggleButton(QWidget):
             self.slider.setText('Off')
         self.animation.start()
 
+    def _updateUIAndCallback(self, state):
+        self._updateUI(state)
+
         # Call the callback function if provided
         if self.toggle_callback:
-            self.toggle_callback(self.background.isChecked())
+            self.toggle_callback(state)
             
     def isChecked(self):
-        return self.background.isChecked()
+        return self.state
 
     def setState(self, state):
-        self.update(state)
+        if not (self.state == state):
+            self.state=state
+            self._updateUIAndCallback(state)
+        else:
+            self._updateUI(state)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = QWidget()
 
-    data_menu = dataMenu('toto', 'ms')
+    data_menu = dataMenu('toto 1', 'ms')
     data_menu.setText("tutu")
-    rodata_menu = dataMenu('toto', 'ms')
+    rodata_menu = dataMenu('toto 2', 'ms')
     rodata_menu.setReadOnly(True)
     rodata_menu.setText("ReadOnly")
     
     def on_toggle(state):
         print(f'Toggle state changed to: {"On" if state else "Off"}')
         rodata_menu.setReadOnly(state)
+
+    def on_toggleAvail(state):
+        print(f'Toggle state changed to: {"On Available" if state else "Off"}')
+        if state:
+            data_menu.setText("Avail")
+        else:
+            data_menu.setDataAvailable(False)
+    #rodata_menu.setFixedWidth(80,70,50)
+
         
 
  
     # Création du bouton de bascule animé avec un état initial
     animated_toggle_button1 = AnimatedToggleButton(window, initial_state=False, toggle_callback=on_toggle)
-    animated_toggle_button2 = AnimatedToggleButton(window, initial_state=True, toggle_callback=on_toggle)
+    animated_toggle_button2 = AnimatedToggleButton(window, initial_state=True, toggle_callback=on_toggleAvail)
 
     # Layout
     layout = QVBoxLayout()

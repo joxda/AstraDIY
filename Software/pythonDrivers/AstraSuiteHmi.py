@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         
         # Create instances of the widgets
         pwm_hmi = MainPwmWindow()
-        gpio_hmi = MainGpioWindow()
+        gpio_hmi = MainGpioWindow(size=60)
         ina_hmi = MainInaWindow()
         
         # Add widgets as tabs
@@ -33,12 +33,13 @@ class MainWindow(QMainWindow):
         # Window settings
         self.setWindowTitle('Astra HMI')
         self.resize(400, 300)
+        
+    def closeEvent(self, event):
+        os.kill(os.getpid(), signal.SIGTERM)
+        
 
-def main():
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == '__main__':
-    main()
