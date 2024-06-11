@@ -138,7 +138,7 @@ const char * AstrAlimFocuser::getDefaultName()
 
 bool AstrAlimFocuser::Connect()
 {
-	chip = gpiod_chip_open("/dev/gpiochip0");
+	chip = gpiod_chip_open("/dev/gpiochip4");
 	if (!chip)
 	{
 		DEBUG(INDI::Logger::DBG_ERROR, "Problem initiating AstrAlim Focuser.");
