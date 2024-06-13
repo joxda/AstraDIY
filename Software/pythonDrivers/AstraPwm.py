@@ -180,6 +180,7 @@ class AstraPwm():
         self.asservTempRosee = True
 
         # Aserv
+        self.thread=None
         self.autoUpdateKpKiKd=True
         self.Kp = 2
         self.Ki = 0.0
@@ -357,6 +358,9 @@ class AstraPwm():
 
     def startAserv(self):
         if not self._running:
+            # test If I did launch a thread previously and wait for it to end
+            if self.thread != None:
+                self.thread.join()    
             self._running = True
             self.thread = threading.Thread(target=self._auto_tune_pid_lms)
             self.thread.start()
@@ -364,7 +368,7 @@ class AstraPwm():
     def stopAserv(self):
         if self._running:
             self._running = False
-            self.thread.join()
+            
 
     def isAserv(self):
         return self._running

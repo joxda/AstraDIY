@@ -16,33 +16,26 @@ class dataMenu(QWidget):
         self.label=label
         self.readOnly=readOnly
         self.dataAvailable=False
+        self.height=40
 
         self.type_label = QLabel(self.label, self)  
         self.type_label.setAlignment(Qt.AlignCenter)
         self.type_label.adjustSize()
-        self.type_label.setFixedHeight(50)
+        self.type_label.setFixedHeight(self.height)
 
         self.line_edit = QLineEdit(self)
         self.line_edit.adjustSize()
         #self.line_edit.setInputMask('9999')  # Limite les caractères à des chiffres uniquement
-        self.line_edit.setFixedHeight(50)
+        self.line_edit.setFixedHeight(self.height)
         self.line_edit.setAlignment(Qt.AlignRight)
 
         self.unit_label = QLabel(self.unit, self)  
         self.unit_label.setAlignment(Qt.AlignCenter)
-        self.type_label.setFixedHeight(50)
+        self.type_label.setFixedHeight(self.height)
         self.unit_label.adjustSize()
         
-        self.type_label.setStyleSheet("""
-                QLabel {
-                    border: none;
-                }
-            """)
-        self.unit_label.setStyleSheet("""
-                QLabel {
-                    border: none;
-                }
-            """)  
+        self.type_label.setStyleSheet("border: none;")
+        self.unit_label.setStyleSheet("border: none;")  
         #self.unit_label.setFixedHeight(50)
 
         # Mettre le QLabel et le QLineEdit dans un QHBoxLayout pour les aligner horizontalement
@@ -51,7 +44,7 @@ class dataMenu(QWidget):
         layout.addWidget(self.line_edit)
         layout.addWidget(self.unit_label)
         layout.setSpacing(0)
-        layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
+        layout.setContentsMargins(0, 0, 0, 0)  # Set the margins inside the frame
 
         # Frame pour les assembler
         self.subWindow = QFrame()
@@ -59,9 +52,12 @@ class dataMenu(QWidget):
         self.subWindow.setFrameShadow(QFrame.Raised)
         self.subWindow.setLayout(layout)
         
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(self.subWindow)
-        self.setLayout(mainLayout)
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.setSpacing(0)
+        self.mainLayout.setContentsMargins(0,0,0,0)
+
+        self.mainLayout.addWidget(self.subWindow)
+        self.setLayout(self.mainLayout)
         self.adjustSize()
         self.restaureStyleSheet()
         

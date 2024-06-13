@@ -33,23 +33,23 @@ class AstraInaFetcher(threading.Thread):
             time.sleep(0.5)
             with self.listInalock:
                 for ina in self.listIna:
-                    if ina["lasttime"] == 0:
-                        ina["lasttime"] = time.perf_counter()
-                    else:
-                        curtime=time.perf_counter()
-                        deltatime=curtime-ina["lasttime"]
-                        if ina["confgurationSet"]:
-                            if ina["configured"]:
-                                ina["voltage"] = ina["ina219"].voltage()
-                                ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
-                                ina["current"] = ina["ina219"].current()
-                                ina["power"] = ina["ina219"].power()
-                                ina["energie"] += ina["power"] * deltatime
-                                ina["lasttime"]=curtime
-                            else:
-                                if ina["ina219"].ping():
-                                    ina["ina219"].configure(ina["voltage_range"], ina["gain"], ina["bus_adc"], ina["shunt_adc"])
-                                    ina["configured"] = True
+                    if ina["confgurationSet"]:
+                        if ina["configured"]:
+                            curtime=time.perf_counter()
+                            deltatime=curtime-ina["lasttime"]
+                            ina["voltage"] = ina["ina219"].voltage()
+                            ina["shunt_voltage"] = ina["ina219"].shunt_voltage()
+                            ina["current"] = ina["ina219"].current()
+                            ina["power"] = ina["ina219"].power()
+                            ina["energie"] += ina["power"] * deltatime
+                            ina["lasttime"]=curtime
+                            ina["intPeriod"]=curtime-ina["firstttime"]
+                        else:
+                            if ina["ina219"].ping():
+                                ina["lasttime"] = time.perf_counter()
+                                ina["firstttime"] = time.perf_counter()
+                                ina["ina219"].configure(ina["voltage_range"], ina["gain"], ina["bus_adc"], ina["shunt_adc"])
+                                ina["configured"] = True
                     #print(ina["address"]," voltage", ina["voltage"])
 
     def stop(self):
@@ -109,7 +109,7 @@ class AstraIna:
         AstraInaFetcher.exitAll()
 
     def __init__(self, shunt_ohms=-1, max_expected_amps=-1, busnum=-1, address=-1, name="", log_level=logging.ERROR):
-        self.ina219 = {"confgurationSet":False, "configured":False, "pinged":False, "lasttime":0, "address":address, "voltage":0, "shunt_voltage":0, "current":0, "power":0, "energie":0}
+        self.ina219 = {"confgurationSet":False, "configured":False, "pinged":False, "lasttime":0, "firsttime":0, "address":address, "voltage":0, "shunt_voltage":0, "current":0, "power":0, "energie":0, "intPeriod":0}
         if name == "":
             if shunt_ohms==-1 or max_expected_amps==-1 or busnum==-1 or address==-1:
                 raise Exception("If name notspecified call AstraIna(shunt_ohms, max_expected_amps, busnum, address")
@@ -164,6 +164,12 @@ class AstraIna:
     def energie(self):
         return self.ina219["energie"]
 
+    def energie(self):
+        return self.ina219["energie"]
+
+    def intPeriod(self):
+        return self.ina219["intPeriod"]
+    
 if __name__ == "__main__":
     import signal
     import sys
@@ -189,8 +195,9 @@ if __name__ == "__main__":
                 current = ina219.current()
                 power = ina219.power()
                 energie = ina219.energie() / 60 / 60
+                intPeriod=ina219.intPeriod()
 
-                print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}A, Power: {power:.3f}mW Energie: {energie:.3f}mWh ")
+                print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}A, Power: {power:.3f}mW Energie: {energie:.3f}mWh  intPeriod: {intPeriod:.3f}s")
                 time.sleep(1)
     else:
         # Dictionnaire associant les noms aux informations sur les capteurs INA219
@@ -220,8 +227,9 @@ if __name__ == "__main__":
                 current = ina219.current()
                 power = ina219.power()
                 energie = ina219.energie() / 60 / 60
+                intPeriod=ina219.intPeriod()
 
-                print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}A, Power: {power:.3f}mW Energie: {energie:.3f}mWh ")
+                print(f"{name}: Shunt {shunt_voltage:+.3f}V, Bus {bus_voltage:+.3f}V Current: {current:+.3f}A, Power: {power:.3f}mW Energie: {energie:.3f}mWh intPeriod: {intPeriod:.3f}s")
                 time.sleep(1)
 
 

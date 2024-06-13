@@ -35,11 +35,25 @@ class ina219Frame(QFrame):
         self.textEnergie.setFixedWidth(80,70,50)
         self.textEnergie.setReadOnly(True)
 
+        # Integration Time
+        self.intPeriod = dataMenu("IntPeriod", "s")
+        self.intPeriod.setFixedWidth(80,70,50)
+        self.intPeriod.setReadOnly(True)
+
+        self.styleElement = "background: transparent; background-color: transparent; border: none; color: black;"
+        self.textVoltage.setStyleSheet(self.styleElement)
+        self.textCurrent.setStyleSheet(self.styleElement)
+        self.textEnergie.setStyleSheet(self.styleElement)
+        self.intPeriod.setStyleSheet(self.styleElement)
+
         layout = QVBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0,0,0,0)
         layout.addWidget(label)
         layout.addWidget(self.textVoltage)
         layout.addWidget(self.textCurrent)
         layout.addWidget(self.textEnergie)
+        layout.addWidget(self.intPeriod)
         layout.setSpacing(0)
         #layout.setContentsMargins(1, 1, 1, 1)  # Set the margins inside the frame
         self.setLayout(layout)
@@ -50,6 +64,11 @@ class ina219Frame(QFrame):
         bus_voltage = self.ina219.voltage()
         current = self.ina219.current()
         energie = self.ina219.energie()/3600/1000
+        intPeriods = int(self.ina219.intPeriod())
+        intPeriodm = int(intPeriods/60)
+        intPeriods %= 60
+        intPeriodh = int(intPeriodm/60)
+        intPeriodm %= 60
 
         self.textVoltage.setText(f"{bus_voltage:+.1f}")
         self.textCurrent.setText(f"{current:+.1f}")
@@ -62,6 +81,7 @@ class ina219Frame(QFrame):
         else:
             energie=int(energie/1000)
             self.textEnergie.setText(f"{energie}k")
+        self.intPeriod.setText(f"{intPeriodh:2d}:{intPeriodm:2d}:{intPeriods:2d}")
 
 class MainInaWindow(QWidget):
     def __init__(self):

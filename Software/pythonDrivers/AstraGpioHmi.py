@@ -38,7 +38,7 @@ class GpioControl(QWidget):
             self.gpio.set_on()
         else:
             self.gpio.set_off()
-        self.gpio.print_status()
+        # self.gpio.print_status()
 
 class MainGpioWindow(QWidget):
     def __init__(self, parent=None, size=30):
