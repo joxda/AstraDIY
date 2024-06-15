@@ -565,11 +565,11 @@ class DeviceRangeError(Exception):
 if __name__ == "__main__":
     # Dictionnaire associant les noms aux informations sur les capteurs INA219
     ina219_set = {
-        "alim_1_i2c_41   ": {"address": 0x41, "shunt_ohms": 0.02, "max_expected_amps": 6},
-        "alim_2_i2c_44   ": {"address": 0x44, "shunt_ohms": 0.02, "max_expected_amps": 6},
-        "alim_3_i2c_45_5V": {"address": 0x46, "shunt_ohms": 0.02, "max_expected_amps": 6},
-        "alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.02, "max_expected_amps": 6},
-        "alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.02, "max_expected_amps": 6}
+        "alim_1_i2c_41   ": {"address": 0x41, "shunt_ohms": 0.01, "max_expected_amps": 6},
+        "alim_2_i2c_44   ": {"address": 0x44, "shunt_ohms": 0.01, "max_expected_amps": 6},
+        "alim_3_i2c_45_5V": {"address": 0x46, "shunt_ohms": 0.01, "max_expected_amps": 6},
+        "alim_4_i2c_47   ": {"address": 0x49, "shunt_ohms": 0.01, "max_expected_amps": 6},
+        "alim_5_i2c_47   ": {"address": 0x4d, "shunt_ohms": 0.01, "max_expected_amps": 6}
     }
 
 
@@ -582,7 +582,14 @@ if __name__ == "__main__":
         ina219_set[name]["ina219_object"] = INA219(address=address, shunt_ohms=shunt_ohms, max_expected_amps=max_expected_amps, busnum=1)
         ina219_set[name]["ina219_object"].configure(bus_adc=INA219.ADC_64SAMP, shunt_adc=INA219.ADC_64SAMP)
 
-    for name, info in ina219_set.items():
+    while True:
+        time.sleep(0.5)
+        print("=====================================================")
+        for name, info in ina219_set.items():
+            ina219 = info["ina219_object"]
+            ina219.configure(bus_adc=INA219.ADC_64SAMP, shunt_adc=INA219.ADC_64SAMP)
+        time.sleep(0.1)
+        for name, info in ina219_set.items():
             ina219 = info["ina219_object"]
             shunt_voltage = ina219.shunt_voltage()
             bus_voltage = ina219.voltage()
