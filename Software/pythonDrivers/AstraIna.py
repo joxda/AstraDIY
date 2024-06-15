@@ -35,9 +35,11 @@ class AstraInaFetcher(threading.Thread):
                 for ina in self.listIna:
                     ina["configured"] = False
                     if ina["ina219"].ping():
-                        ina["lasttime"] = time.perf_counter()
-                        ina["firstttime"] = time.perf_counter()
                         ina["pinged"]=True
+                        if ina["NotYetPing"]:
+                            ina["lasttime"] = time.perf_counter()
+                            ina["firstttime"] = time.perf_counter()
+                            ina["NotYetPing"]=False
 
                     if  ina["pinged"]:
                         ina["ina219"].configure(voltage_range=ina["voltage_range"], gain=ina["gain"], bus_adc=ina["bus_adc"], shunt_adc=ina["shunt_adc"])
@@ -63,6 +65,7 @@ class AstraInaFetcher(threading.Thread):
 
     def set_ina(self, ina):
         ina["pinged"]=False
+        ina["NotYetPing"]=True
         with self.listInalock:
             self.listIna.append(ina)
 
