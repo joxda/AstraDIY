@@ -30,7 +30,7 @@ class AstraInaFetcher(threading.Thread):
 
     def run(self):
         while self.running:
-            time.sleep(0.5)
+            time.sleep(0.4)
             with self.listInalock:
                 for ina in self.listIna:
                     ina["configured"] = False
@@ -45,6 +45,7 @@ class AstraInaFetcher(threading.Thread):
                         ina["ina219"].configure(voltage_range=ina["voltage_range"], gain=ina["gain"], bus_adc=ina["bus_adc"], shunt_adc=ina["shunt_adc"])
                         ina["configured"] = True
 
+                time.sleep(0.1)
                 for ina in self.listIna:
                     if ina["configured"]:
                         curtime=time.perf_counter()
@@ -95,17 +96,17 @@ class AstraIna:
     # Dictionnaire associant les noms aux informations sur les capteurs INA219
     ina219_set = {
             "AstraDc1": {"ispwm":False, "busnum":1, "address": 0x41, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 37, 
-                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP },
             "AstraDc2": {"ispwm":False, "busnum":1, "address": 0x44, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 38, 
-                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP },
             "AstraDc3": {"ispwm":False, "busnum":1, "address": 0x46, "shunt_ohms": 0.01, "max_expected_amps": 6, "pin": 40, 
-                         "bus_adc":INA219.ADC_12BIT, "shunt_adc":INA219.ADC_12BIT },
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP },
             "AstraPwm1": {"ispwm":True, "busnum":1, "address": 0x49, "shunt_ohms": 0.01, "max_expected_amps": 6, "chip":2, "pwm":1, 
-                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP },
             "AstraPwm2": {"ispwm":True, "busnum":1, "address": 0x4d, "shunt_ohms": 0.01, "max_expected_amps": 6, "chip":2, "pwm":2, 
-                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP },
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP },
             "AstOnStep": {"ispwm":True, "busnum":1, "address": 0x40, "shunt_ohms": 0.005, "max_expected_amps": 6, "chip":2, "pwm":2, 
-                         "bus_adc":INA219.ADC_64SAMP, "shunt_adc":INA219.ADC_64SAMP }
+                         "bus_adc":INA219.ADC_128SAMP, "shunt_adc":INA219.ADC_128SAMP }
     }
 
     @classmethod
