@@ -196,6 +196,12 @@ class AnimatedToggleButton(QWidget):
         else:
             self._updateUI(state)
 
+    def updateUI(self):
+        # self._updateUI(self.state)
+        if not self.state:
+            self.slider.setGeometry(0, 0, self.size, self.size)
+        else:
+            self.slider.setGeometry(self.size, 0, self.size, self.size)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

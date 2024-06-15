@@ -40,6 +40,9 @@ class GpioControl(QWidget):
             self.gpio.set_off()
         # self.gpio.print_status()
 
+    def updateUI(self):
+        self.toggle_button.updateUI()
+
 class MainGpioWindow(QWidget):
     def __init__(self, parent=None, size=30):
         super().__init__(parent)
@@ -55,6 +58,9 @@ class MainGpioWindow(QWidget):
         self.setLayout(self.main_layout)
         self.setWindowTitle('AstrAlimGpio')
 
+    def updateUI(self):
+        for widget in self.widgets:
+            widget.updateUI()
             
 if __name__ == '__main__':
     app = QApplication(sys.argv)

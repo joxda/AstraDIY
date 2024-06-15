@@ -18,14 +18,14 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         
         # Create instances of the widgets
-        pwm_hmi = MainPwmWindow()
-        gpio_hmi = MainGpioWindow(size=60)
-        ina_hmi = MainInaWindow()
+        self.pwm_hmi = MainPwmWindow()
+        self.gpio_hmi = MainGpioWindow(size=60)
+        self.ina_hmi = MainInaWindow()
         
         # Add widgets as tabs
-        self.tabs.addTab(pwm_hmi, "PwmH")
-        self.tabs.addTab(gpio_hmi, "Gpio")
-        self.tabs.addTab(ina_hmi, "Ina")
+        self.tabs.addTab(self.pwm_hmi, "PwmH")
+        self.tabs.addTab(self.gpio_hmi, "Gpio")
+        self.tabs.addTab(self.ina_hmi, "Ina")
         
         # Set the central widget of the main window to be the QTabWidget
         self.setCentralWidget(self.tabs)
@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         # Window settings
         self.setWindowTitle('Astra HMI')
         self.resize(400, 300)
-        
+
     def closeEvent(self, event):
         os.kill(os.getpid(), signal.SIGTERM)
         
