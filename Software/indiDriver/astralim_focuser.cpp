@@ -128,7 +128,7 @@ AstrAlimFocuser::AstrAlimFocuser()
 AstrAlimFocuser::~AstrAlimFocuser()
 {
 	deleteProperty(MotorBoardSP.name);
-	deleteProperty(BCMpinsNP.name);
+	// DGE deleteProperty(BCMpinsNP.name);
 }
 
 const char * AstrAlimFocuser::getDefaultName()
@@ -157,12 +157,19 @@ bool AstrAlimFocuser::Connect()
 	}
 
 	// Select gpios
-	gpio_dir = gpiod_chip_get_line(chip, BCMpinsN[0].value);
-	gpio_step = gpiod_chip_get_line(chip, BCMpinsN[1].value);
-	gpio_sleep = gpiod_chip_get_line(chip, BCMpinsN[2].value);
-	gpio_m1 = gpiod_chip_get_line(chip, BCMpinsN[3].value);
-	gpio_m2 = gpiod_chip_get_line(chip, BCMpinsN[4].value);
-	gpio_m3 = gpiod_chip_get_line(chip, BCMpinsN[5].value);
+	//gpio_dir = gpiod_chip_get_line(chip, BCMpinsN[0].value);
+	//gpio_step = gpiod_chip_get_line(chip, BCMpinsN[1].value);
+	//gpio_sleep = gpiod_chip_get_line(chip, BCMpinsN[2].value);
+	//gpio_m1 = gpiod_chip_get_line(chip, BCMpinsN[3].value);
+	//gpio_m2 = gpiod_chip_get_line(chip, BCMpinsN[4].value);
+	//gpio_m3 = gpiod_chip_get_line(chip, BCMpinsN[5].value);
+
+	gpio_dir = gpiod_chip_get_line(chip, 10);
+	gpio_step = gpiod_chip_get_line(chip, 24);
+	gpio_sleep = gpiod_chip_get_line(chip, 23);
+	gpio_m1 = gpiod_chip_get_line(chip, 11);
+	gpio_m2 = gpiod_chip_get_line(chip, 7);
+	gpio_m3 = gpiod_chip_get_line(chip, 5);
 
 	// Set initial state for gpios
 	gpiod_line_request_output(gpio_dir, "dir@astralim_focuser", 1); // default direction is outward
@@ -186,8 +193,8 @@ bool AstrAlimFocuser::Connect()
 	IDSetSwitch(&MotorBoardSP, nullptr);
 
 	// Lock BCM Pins setting
-	BCMpinsNP.s=IPS_BUSY;
-	IDSetNumber(&BCMpinsNP, nullptr);
+	// DGE BCMpinsNP.s=IPS_BUSY;
+	// DGE IDSetNumber(&BCMpinsNP, nullptr);
 
 	// Update focuser parameters
 	getFocuserInfo();
@@ -224,8 +231,8 @@ bool AstrAlimFocuser::Disconnect()
 	IDSetSwitch(&MotorBoardSP, nullptr);
 
 	// Unlock BCM Pins setting
-	BCMpinsNP.s=IPS_IDLE;
-	IDSetNumber(&BCMpinsNP, nullptr);
+	// DGE BCMpinsNP.s=IPS_IDLE;
+	// DGE IDSetNumber(&BCMpinsNP, nullptr);
 
 	DEBUG(INDI::Logger::DBG_SESSION, "AstrAlim Focuser disconnected successfully.");
 
@@ -260,14 +267,16 @@ bool AstrAlimFocuser::initProperties()
 	IUFillSwitch(&MotorBoardS[1],"A4988","A4988",ISS_OFF);
 	IUFillSwitchVector(&MotorBoardSP,MotorBoardS,2,getDeviceName(),"MOTOR_BOARD","Control Board",OPTIONS_TAB,IP_RW,ISR_1OFMANY,0,IPS_IDLE);
 
+	// DGE Begin
 	// BCM PINs setting
-	IUFillNumber(&BCMpinsN[0], "BCMPIN_DIR", "DIR", "%0.0f", 1, 27, 0, 23); // BCM23 = PIN16
-	IUFillNumber(&BCMpinsN[1], "BCMPIN_STEP", "STEP", "%0.0f", 1, 27, 0, 24); // BCM24 = PIN18
-	IUFillNumber(&BCMpinsN[2], "BCMPIN_SLEEP", "SLEEP", "%0.0f", 1, 27, 0, 22); // BCM22 = PIN15
-	IUFillNumber(&BCMpinsN[3], "BCMPIN_M1", "M1", "%0.0f", 1, 27, 0, 17); // BCM17 = PIN11
-	IUFillNumber(&BCMpinsN[4], "BCMPIN_M2", "M2", "%0.0f", 1, 27, 0, 18); // BCM18 = PIN12
-	IUFillNumber(&BCMpinsN[5], "BCMPIN_M3", "M3", "%0.0f", 1, 27, 0, 27); // BCM27 = PIN13
-	IUFillNumberVector(&BCMpinsNP, BCMpinsN, 6, getDeviceName(), "BCMPINS", "BCM Pins", OPTIONS_TAB, IP_RW, 0, IPS_IDLE);
+	//IUFillNumber(&BCMpinsN[0], "BCMPIN_DIR", "DIR", "%0.0f", 1, 27, 0, 23); // BCM23 = PIN16
+	//IUFillNumber(&BCMpinsN[1], "BCMPIN_STEP", "STEP", "%0.0f", 1, 27, 0, 24); // BCM24 = PIN18
+	//IUFillNumber(&BCMpinsN[2], "BCMPIN_SLEEP", "SLEEP", "%0.0f", 1, 27, 0, 22); // BCM22 = PIN15
+	//IUFillNumber(&BCMpinsN[3], "BCMPIN_M1", "M1", "%0.0f", 1, 27, 0, 17); // BCM17 = PIN11
+	//IUFillNumber(&BCMpinsN[4], "BCMPIN_M2", "M2", "%0.0f", 1, 27, 0, 18); // BCM18 = PIN12
+	//IUFillNumber(&BCMpinsN[5], "BCMPIN_M3", "M3", "%0.0f", 1, 27, 0, 27); // BCM27 = PIN13
+	//IUFillNumberVector(&BCMpinsNP, BCMpinsN, 6, getDeviceName(), "BCMPINS", "BCM Pins", OPTIONS_TAB, IP_RW, 0, IPS_IDLE);
+	// DGE End
 
 	// Stepper standby setting
 	IUFillSwitch(&StepperStandbyS[0],"STEPPER_STANDBY_ON","Enable",ISS_ON);
@@ -338,7 +347,7 @@ bool AstrAlimFocuser::initProperties()
 
 	// Load some custom properties before connecting
 	defineSwitch(&MotorBoardSP);
-	defineNumber(&BCMpinsNP);
+	// DGE defineNumber(&BCMpinsNP);
 
 	// Load config values, which cannot be changed after we are connected
 	loadConfig(false, "MOTOR_BOARD"); // load stepper motor controller
@@ -404,6 +413,7 @@ bool AstrAlimFocuser::ISNewNumber (const char *dev, const char *name, double val
 	if(!strcmp(dev,getDeviceName()))
 	{
 		// handle BCMpins
+		/* DGE 
 		if (!strcmp(name, BCMpinsNP.name))
 		{
 			unsigned int valcount = 6;
@@ -465,6 +475,7 @@ bool AstrAlimFocuser::ISNewNumber (const char *dev, const char *name, double val
 				return true;
 			}
 		}
+		DGE */
 
 		// handle stepper standby delay
 		if (!strcmp(name, StepperStandbyTimeNP.name))
@@ -746,7 +757,7 @@ bool AstrAlimFocuser::ISSnoopDevice (XMLEle *root)
 bool AstrAlimFocuser::saveConfigItems(FILE *fp)
 {
 	IUSaveConfigSwitch(fp, &MotorBoardSP);
-	IUSaveConfigNumber(fp, &BCMpinsNP);
+	// DGE IUSaveConfigNumber(fp, &BCMpinsNP);
 	IUSaveConfigSwitch(fp, &StepperStandbySP);
 	IUSaveConfigNumber(fp, &StepperStandbyTimeNP);
 	IUSaveConfigSwitch(fp, &FocusResolutionSP);
