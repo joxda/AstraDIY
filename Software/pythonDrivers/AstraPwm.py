@@ -270,12 +270,14 @@ class AstraPwm():
     def _set_associateTemp(self, name):
         retval = False
         iteration=4
-        while ((iteration > 0) and (not(retval))):
-            if name in self.AstraTempFetcher.get_listTemp():
-                self.tempname = name
-                retval= True
-            else:
-                time.sleep(0.1)
+        #while ((iteration > 0) and (not(retval))):
+        #    if name in self.AstraTempFetcher.get_listTemp():
+        #        self.tempname = name
+        #        retval= True
+        #    else:
+        #        time.sleep(0.1)
+        self.tempname = name
+        retval=True
         return retval
 
     def set_associateTemp(self, name):

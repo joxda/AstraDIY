@@ -17,6 +17,7 @@ class DrewControl(QWidget):
         self.buttonAsservOn=False
         self.buttonRoseeConsigneOn=False
         self.AstraDrew = AstraPwm(name)
+        self.listTempAllreadySet={}
 
         #####################################
         # button zone
@@ -44,15 +45,21 @@ class DrewControl(QWidget):
         curtempname = self.AstraDrew.get_associateTemp()
         defaultIndex=0
         self.selTemp.addItem("Unset Temp Sensor")
-        curindex=1
         if len(self.AstraDrew.get_listTemp()) > 0:
+            curindex=1
             for tempId in self.AstraDrew.get_listTemp():
                 self.selTemp.addItem(tempId)
+                self.listTempAllreadySet[tempId]=True
                 if tempId == curtempname:
                     defaultIndex=curindex
                 curindex=curindex+1
         else:
             defaultIndex=0
+
+        if defaultIndex == 0:
+            self.selTemp.addItem(curtempname)
+            self.listTempAllreadySet[curtempname]=True
+
         self.selTemp.setCurrentIndex(defaultIndex)
         #self.set_associateTemp(0)
         self.selTemp.currentIndexChanged.connect(self.set_associateTemp)
@@ -164,6 +171,12 @@ class DrewControl(QWidget):
         self.setLayout(allLayoutTite)
         
 
+    def updateListTempSensor(self):
+        for tempId in self.AstraDrew.get_listTemp():
+            if not self.listTempAllreadySet[tempId]:
+                self.selTemp.addItem(tempId)
+                self.listTempAllreadySet[tempId]=True
+
 
     def set_textPowerReadOnly(self, val):
         self.textPower.setReadOnly(val)
@@ -238,6 +251,8 @@ class DrewControl(QWidget):
         else:
             self.textTempMesure.setText(f"{tempsensor:+.1f}")
             self.textTempMesure.setStyleSheet("")
+
+        self.updateListTempSensor()
 
         tempbme=self.AstraDrew.get_bmeTemp()
         if tempbme == self.AstraDrew.TEMPUNAVAIL:
