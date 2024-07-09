@@ -14,6 +14,7 @@ class AstraInaFetcher(threading.Thread):
         self.running = True
         self.listInalock = threading.Lock()
         self.listIna = []
+        self.totalEnergie=0
 
     @classmethod
     def get_instance(cls):
@@ -54,7 +55,9 @@ class AstraInaFetcher(threading.Thread):
                         ina["voltage"] = ina["ina219"].voltage()
                         ina["current"] = ina["ina219"].current()
                         ina["power"] = ina["ina219"].power()
-                        ina["energie"] += ina["power"] * deltatime
+                        energie=ina["power"] * deltatime
+                        ina["energie"] += energie
+                        self.totalEnergie += energie
                         ina["lasttime"]=curtime
                         ina["intPeriod"]=curtime-ina["firstttime"]
                     #print(ina["address"]," voltage", ina["voltage"])
@@ -69,6 +72,9 @@ class AstraInaFetcher(threading.Thread):
         ina["NotYetPing"]=True
         with self.listInalock:
             self.listIna.append(ina)
+
+    def get_totalEnergie(self):
+        return self.totalEnergie
 
 
 class AstraIna:
@@ -174,6 +180,9 @@ class AstraIna:
 
     def intPeriod(self):
         return self.ina219["intPeriod"]
+
+    def get_totalEnergie(self):
+        return self.AstraInaFetcher.get_totalEnergie()    
     
 if __name__ == "__main__":
     import signal
@@ -194,6 +203,7 @@ if __name__ == "__main__":
             listIna.append(AstraIna(name=name))
         while True:
             time.sleep(1)
+            print("Energie=",listIna[0].get_totalEnergie()/3600," mAh")
             print("===============================================================")
             for ina219 in listIna:
                 name=ina219.get_name()

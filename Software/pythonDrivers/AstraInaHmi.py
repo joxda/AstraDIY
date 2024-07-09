@@ -10,6 +10,21 @@ from PyQt5.QtCore import Qt
 from AstraIna import AstraIna
 from AstraCommonHmi import dataMenu
 
+def formatEnergie(energie):
+    retval=""
+    if not isinstance(energie, (int, float)):
+        retval=energie
+    elif energie < 100:
+        retval=f"{energie:.3f}"
+    elif energie < 500:
+        retval=f"{energie:.2f}"
+    elif energie < 1000:
+        retval=f"{energie:.1f}"
+    else:
+        energie=int(energie/1000)
+        retval=f"{energie}k"
+    return retval
+
 
 class ina219Frame(QFrame):
     def __init__(self, ina219):
@@ -63,7 +78,6 @@ class ina219Frame(QFrame):
     def update_text_fields(self):
         bus_voltage = self.ina219.voltage()
         current = self.ina219.current()
-        energie = self.ina219.energie()/3600/1000
         intPeriods = int(self.ina219.intPeriod())
         intPeriodm = int(intPeriods/60)
         intPeriods %= 60
@@ -72,20 +86,23 @@ class ina219Frame(QFrame):
 
         self.textVoltage.setText(f"{bus_voltage:+.1f}")
         self.textCurrent.setText(f"{current:+.1f}")
-        if energie < 100:
-            self.textEnergie.setText(f"{energie:.3f}")
-        elif energie < 500:
-            self.textEnergie.setText(f"{energie:.2f}")
-        elif energie < 1000:
-            self.textEnergie.setText(f"{energie:.1f}")
-        else:
-            energie=int(energie/1000)
-            self.textEnergie.setText(f"{energie}k")
+        self.textEnergie.setText(formatEnergie(self.ina219.energie()/3600/1000))
         self.intPeriod.setText(f"{intPeriodh:2d}:{intPeriodm:2d}:{intPeriods:2d}")
+
+    def get_totalEnergieAh(self):
+        return self.ina219.get_totalEnergie()/3600/1000
 
 class MainInaWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        # Main vertical layout
+        self.overall_layout = QVBoxLayout()
+
+        # Add QLabel at the top
+        self.TotalEnergie = dataMenu("Total Energie = ", "Ah")
+        self.TotalEnergie.setReadOnly(True)
+        self.overall_layout.addWidget(self.TotalEnergie)
 
         # Layout de type grille
         self.main_layout = QGridLayout()
@@ -104,16 +121,23 @@ class MainInaWindow(QWidget):
             widget=ina219Frame(AstraIna(name=name))
             self.widgets.append(widget)
             self.main_layout.addWidget(widget, row, col)
-        
-        self.setLayout(self.main_layout)
+         
+        self.overall_layout.addLayout(self.main_layout)
+        self.setLayout(self.overall_layout)
         self.setWindowTitle('AstrAlimIna')
 
 
         # Créer un timer pour mettre à jour tous les widgets toutes les secondes
         self.timer = QTimer()
-        self.timer.timeout.connect(lambda: [widget.update_text_fields() for widget in self.widgets])
+        self.timer.timeout.connect(lambda: [self.update_text_fields()])
         self.timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
  
+    def  update_text_fields(self):
+        self.TotalEnergie.setText(formatEnergie(self.widgets[1].get_totalEnergieAh()))
+  
+        for widget in self.widgets:
+            widget.update_text_fields() 
+
     def closeEvent(self, event):
         AstraIna.exitAll()
         #os.kill(os.getpid(), signal.SIGTERM)
