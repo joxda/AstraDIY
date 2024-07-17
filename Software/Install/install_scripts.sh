@@ -1,11 +1,21 @@
 #!/bin/bash
 #
 HOMEDIR=$(dirname $0)/..
-INSTALLDIR=/opt/AstrAlim
+INSTALLDIR=/opt/AstraDIY
+
+echo "Remove Old dirs (AstrAlim)"
+if [[ -d /opt/AstrAlim ]] ; then
+	echo "Remove old directory /opt/AstrAlim"
+	rm -rf /opt/AstrAlim  
+fi
+if [[ -e /etc/profile.d/AstrAlim.sh ]] ; then
+	echo "Removing of setup /etc/profile.d/AstrAlim.sh"
+	rm /etc/profile.d/AstrAlim.sh
+fi
 
 echo "Begin Installing scripts"
-cat > /etc/profile.d/AstrAlim.sh << END
-# Environnement Python AstrAlim 
+cat > /etc/profile.d/AstraDIY.sh << END
+# Environnement Python AstraDIY 
 export PYTHONPATH=\$PYTHONPATH:$INSTALLDIR
 export PATH=\$PATH:$INSTALLDIR
 END
