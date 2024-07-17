@@ -1,6 +1,7 @@
 # AstraDIY
 # Description :
-The current repository was made in order to provide for archiving support for the [AstAlim RPI](https://oshwlab.com/pololamag/nafa-astralim), [AstrAlim](https://oshwlab.com/pololamag/astralim), [AstrOnStep](https://oshwlab.com/pololamag/astronstep) boards project.
+The current repository was made in order to provide for archiving support for the [AstrAlim](https://oshwlab.com/pololamag/astralim), [AstrOnStep](https://oshwlab.com/pololamag/astronstep) boards project.
+As well some elements about the [HEMY](https://github.com/polvinc/HEMY) Harmonical DIY mount with regards to Software.
 It contains :
    * the saved element for the hardware projet. See Hadrware directory.
    * Software developped scripts to simplify usage of the hardware. See Software diretory.
