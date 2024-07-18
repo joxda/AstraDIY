@@ -27,31 +27,31 @@ def formatEnergie(energie):
 
 
 class ina219Frame(QFrame):
-    def __init__(self, ina219):
-        super().__init__()
+    def __init__(self, ina219, parent=None):
+        super().__init__(parent)
         self.ina219 = ina219
         #self.setStyleSheet("border: 1px solid black;") 
         
-        label = QLabel(self.ina219.get_name()) 
+        label = QLabel(self.ina219.get_name(), parent=self) 
         label.setAlignment(Qt.AlignCenter)        
         label.adjustSize()
         # Voltage
-        self.textVoltage = dataMenu("Tension", "V")
+        self.textVoltage = dataMenu("Tension", "V", parent=self)
         self.textVoltage.setFixedWidth(80,70,50)
         self.textVoltage.setReadOnly(True)
 
         # Current 
-        self.textCurrent = dataMenu("Courant", "mA")
+        self.textCurrent = dataMenu("Courant", "mA", parent=self)
         self.textCurrent.setFixedWidth(80,70,50)
         self.textCurrent.setReadOnly(True)
 
         # PowerQT
-        self.textEnergie = dataMenu("Energie", "Ah")
+        self.textEnergie = dataMenu("Energie", "Ah", parent=self)
         self.textEnergie.setFixedWidth(80,70,50)
         self.textEnergie.setReadOnly(True)
 
         # Integration Time
-        self.intPeriod = dataMenu("IntPeriod", "s")
+        self.intPeriod = dataMenu("IntPeriod", "s", parent=self)
         self.intPeriod.setFixedWidth(80,70,50)
         self.intPeriod.setReadOnly(True)
 
@@ -93,37 +93,36 @@ class ina219Frame(QFrame):
         return self.ina219.get_totalEnergie()/3600/1000
 
 class MainInaWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-        # Main vertical layout
-        self.overall_layout = QVBoxLayout()
-
-        # Add QLabel at the top
-        self.TotalEnergie = dataMenu("Total Energie = ", "Ah")
-        self.TotalEnergie.setReadOnly(True)
-        self.overall_layout.addWidget(self.TotalEnergie)
 
         # Layout de type grille
         self.main_layout = QGridLayout()
         self.main_layout.setSpacing(0)
 
+        # Add QLabel at the top
+        self.TotalEnergie = dataMenu(" Total Energie = ", "Ah ", parent=self)
+        self.TotalEnergie.setReadOnly(True)
+        self.TotalEnergie.setStyleSheet("border: 1px solid black;") 
+        self.main_layout.addWidget(self.TotalEnergie, 0, 1)
+
+
         self.widgets = []
         listIna =  AstraIna.getListNames()
 
         # Calculer le nombre de lignes et de colonnes pour obtenir une forme carrée
-        n = len(listIna)
+        n = len(listIna) + 1
         rows = cols = math.ceil(math.sqrt(n))
 
         for index, name in enumerate(listIna):
-            row = index // cols
+            row = (index // cols) +1 
             col = index % cols
-            widget=ina219Frame(AstraIna(name=name))
+            widget=ina219Frame(AstraIna(name=name), parent=self)
             self.widgets.append(widget)
             self.main_layout.addWidget(widget, row, col)
          
-        self.overall_layout.addLayout(self.main_layout)
-        self.setLayout(self.overall_layout)
+        self.setLayout(self.main_layout)
         self.setWindowTitle('AstrAlimIna')
 
 

@@ -145,12 +145,6 @@ class AnimatedToggleButton(QWidget):
         self.animation = QPropertyAnimation(self.slider, b"geometry")
         self.animation.setDuration(250)  # Duration of the animation in milliseconds
 
-        # Layout
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.background)
-        layout.addWidget(self.slider)
-
         # Set initial state
         self.background.setChecked(initial_state)
         self.slider.setChecked(initial_state)
@@ -207,9 +201,9 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = QWidget()
 
-    data_menu = dataMenu('toto 1', 'ms')
+    data_menu = dataMenu('toto 1', 'ms', parent=window)
     data_menu.setText("tutu")
-    rodata_menu = dataMenu('toto 2', 'ms')
+    rodata_menu = dataMenu('toto 2', 'ms', parent=window)
     rodata_menu.setReadOnly(True)
     rodata_menu.setText("ReadOnly")
     
@@ -229,8 +223,8 @@ if __name__ == '__main__':
 
  
     # Création du bouton de bascule animé avec un état initial
-    animated_toggle_button1 = AnimatedToggleButton(window, initial_state=False, toggle_callback=on_toggle)
-    animated_toggle_button2 = AnimatedToggleButton(window, initial_state=True, toggle_callback=on_toggleAvail)
+    animated_toggle_button1 = AnimatedToggleButton(parent=window, initial_state=False, toggle_callback=on_toggle)
+    animated_toggle_button2 = AnimatedToggleButton(parent=window, initial_state=True, toggle_callback=on_toggleAvail)
 
     # Layout
     layout = QVBoxLayout()

@@ -11,8 +11,8 @@ from AstraCommonHmi import dataMenu, AnimatedToggleButton
 
 
 class DrewControl(QWidget):
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, name, parent=None):
+        super().__init__(parent=parent)
         self.name=name
         self.buttonAsservOn=False
         self.buttonRoseeConsigneOn=False
@@ -77,20 +77,20 @@ class DrewControl(QWidget):
         #####################################
         # Control zone
         # Power
-        self.textPower = dataMenu("Power", "%")
+        self.textPower = dataMenu("Power", "%", parent=self)
         self.textPower.setFixedWidth(100,70,15)
         self.textPower.setReadOnly(False)
         #self.textPower.setInputMask("000")
         self.textPower.connect(self.set_power)
 
         # Temp consigne
-        self.textTempConsigne = dataMenu("Consigne", "°C")
+        self.textTempConsigne = dataMenu("Consigne", "°C", parent=self)
         self.textTempConsigne.setFixedWidth(100,70,20)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.connect(self.set_cmdtemp)
 
         # Measure Temp
-        self.textTempMesure = dataMenu("Measure", "°C")
+        self.textTempMesure = dataMenu("Measure", "°C", parent=self)
         self.textTempMesure.setFixedWidth(100,70,20)
         self.textTempMesure.setReadOnly(True)
         
@@ -105,17 +105,17 @@ class DrewControl(QWidget):
         # Bme zone
         # Control zone
         # bme temp
-        self.textBmeTemp = dataMenu("envTemp", "°C")
+        self.textBmeTemp = dataMenu("envTemp", "°C", parent=self)
         self.textBmeTemp.setFixedWidth(100,70,20)
         self.textBmeTemp.setReadOnly(True)
 
         # Bme Hmidity
-        self.textHumidity = dataMenu("Humidity", "%")
+        self.textHumidity = dataMenu("Humidity", "%", parent=self)
         self.textHumidity.setFixedWidth(100,70,20)
         self.textHumidity.setReadOnly(True)
 
         # Temp Rosee
-        self.textRosee = dataMenu("TempRosee", "°C")
+        self.textRosee = dataMenu("TempRosee", "°C", parent=self)
         self.textRosee.setFixedWidth(100,70,20)
         self.textRosee.setReadOnly(True)
 
@@ -127,15 +127,15 @@ class DrewControl(QWidget):
 
         #####################################
         # Pid zone
-        self.textKp = dataMenu("Kp", "[0-100]")
+        self.textKp = dataMenu("Kp", "[0-100]", parent=self)
         self.textKp.setFixedWidth(100,70,120)
         self.textKp.setReadOnly(False)
 
-        self.textKi = dataMenu("Ki", "[0-100]")
+        self.textKi = dataMenu("Ki", "[0-100]", parent=self)
         self.textKi.setFixedWidth(100,70,120)
         self.textKi.setReadOnly(False)
 
-        self.textKd = dataMenu("Kd", "[0-100]")
+        self.textKd = dataMenu("Kd", "[0-100]", parent=self)
         self.textKd.setFixedWidth(100,70,120)
         self.textKd.setReadOnly(False)
 
@@ -165,7 +165,7 @@ class DrewControl(QWidget):
         title.setAlignment(Qt.AlignCenter)
         title.adjustSize()
 
-        allLayoutTite = QVBoxLayout()
+        allLayoutTite = QVBoxLayout(self)
         allLayoutTite.addWidget(title)
         allLayoutTite.addLayout(allLayout)
         self.setLayout(allLayoutTite)
@@ -269,18 +269,18 @@ class DrewControl(QWidget):
             self.textRosee.setText(f"{rosee:+.1f}")
 
 class MainPwmWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.initUI()
 
 
     def initUI(self):
-        self.main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout(self)
         self.main_layout.setSpacing(0)
 
         self.widgets = []
         for name in ["AstraPwm1", "AstraPwm2"]:
-            wiget=DrewControl(name)
+            wiget=DrewControl(name, parent=self)
             self.widgets.append(wiget)
             self.main_layout.addWidget(wiget)
 
