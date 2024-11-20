@@ -28,7 +28,7 @@ class SysPWM(object):
     chippath2 = "/sys/class/pwm/pwmchip"
 
     def __init__(self,chip,pwm):
-        self.retry=3
+        self.retry=5
         self.pwm=pwm
         self.chippath="{chippath}{num}".format(chippath=self.chippath2, num=chip)
         self.pwmdir="{chippath}/pwm{pwm}".format(chippath=self.chippath, pwm=self.pwm)
@@ -54,21 +54,25 @@ class SysPWM(object):
 
     def echo(self,m,fil):
         gotValue=False
-        while(not(gotValue) and self.retry >0):
+        retry=self.retry
+        while(not(gotValue) and retry >0):
             try:
                 #print "echo {m} > {fil}".format(m=m,fil=fil)
                 with open(fil,'w') as f:
                     f.write("{m}\n".format(m=m))
+                gotValue=True
             except Exception as e:
                 time.sleep(1)
-            self.retry=self.retry-1
+            retry=retry-1
         if not(gotValue):
             try:
                 #print "echo {m} > {fil}".format(m=m,fil=fil)
                 with open(fil,'w') as f:
                     f.write("{m}\n".format(m=m))
+                gotValue=True
             except Exception as e:
                 print("Uable to open ", fil, " Exception ",str(e), "Arg=",m)
+        return gotValue
 
     def create_pwmX(self):
         pwmexport = "{chippath}/export".format(chippath=self.chippath)

@@ -7,32 +7,34 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVB
 from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QLabel, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 from AstraPwm import AstraPwm
-from AstraCommonHmi import dataMenu
+from AstraCommonHmi import dataMenu, AnimatedToggleButton
 
 
 class DrewControl(QWidget):
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, name, parent=None):
+        super().__init__(parent=parent)
         self.name=name
-        self.buttonAsservOn=True
-        self.buttonRoseeConsigneOn=True
+        self.buttonAsservOn=False
+        self.buttonRoseeConsigneOn=False
         self.AstraDrew = AstraPwm(name)
-        self.initUI()
+        self.listTempAllreadySet={}
 
-    def initUI(self):
         #####################################
         # button zone
         # Button Asserv
-        self.toggle_buttonAsserv = QPushButton(' Off', self)
-        self.toggle_buttonAsserv.setCheckable(True)
-        self.toggle_buttonAsserv.clicked.connect(self.toggle_actionAsserv)
+        self.toggle_buttonAsserv = AnimatedToggleButton(parent=self, toggle_callback=self.set_togglebuttonAsserv, initial_state=self.buttonAsservOn)
+        labelButtonAsserv = QLabel("Asserv Temp", self)  
+        labelButtonAsserv.setAlignment(Qt.AlignCenter)
+        labelButtonAsserv.setFixedHeight(50)
+        labelButtonAsserv.adjustSize()
 
         # Asserv temp to rosee
-        self.toggle_buttonRoseeConsigne = QPushButton('RoseeConsigne Off', self)
-        self.toggle_buttonRoseeConsigne.setCheckable(True)
-        self.toggle_buttonRoseeConsigne.clicked.connect(self.toggle_actionRoseeConsigne)
-
-
+        self.toggle_buttonRoseeConsigne = AnimatedToggleButton(parent=self, toggle_callback=self.set_togglebuttonRoseeConsigne, initial_state=self.buttonRoseeConsigneOn)
+        labelButtonRosee = QLabel("Asserv Consigne", self)  
+        labelButtonRosee.setAlignment(Qt.AlignCenter)
+        labelButtonRosee.setFixedHeight(50)
+        labelButtonRosee.adjustSize()
+        
         self.save_button = QPushButton('Save', self)
         self.save_button.setCheckable(True)
         self.save_button.clicked.connect(self.AstraDrew.save)
@@ -43,15 +45,21 @@ class DrewControl(QWidget):
         curtempname = self.AstraDrew.get_associateTemp()
         defaultIndex=0
         self.selTemp.addItem("Unset Temp Sensor")
-        curindex=1
         if len(self.AstraDrew.get_listTemp()) > 0:
+            curindex=1
             for tempId in self.AstraDrew.get_listTemp():
                 self.selTemp.addItem(tempId)
+                self.listTempAllreadySet[tempId]=True
                 if tempId == curtempname:
                     defaultIndex=curindex
                 curindex=curindex+1
         else:
             defaultIndex=0
+
+        if defaultIndex == 0:
+            self.selTemp.addItem(curtempname)
+            self.listTempAllreadySet[curtempname]=True
+
         self.selTemp.setCurrentIndex(defaultIndex)
         #self.set_associateTemp(0)
         self.selTemp.currentIndexChanged.connect(self.set_associateTemp)
@@ -59,7 +67,9 @@ class DrewControl(QWidget):
         # Lay Out
         firstCol = QVBoxLayout()
         firstCol.setSpacing(0)
+        firstCol.addWidget(labelButtonAsserv)        
         firstCol.addWidget(self.toggle_buttonAsserv)        
+        firstCol.addWidget(labelButtonRosee)        
         firstCol.addWidget(self.toggle_buttonRoseeConsigne)        
         firstCol.addWidget(self.selTemp)        
         firstCol.addWidget(self.save_button)        
@@ -67,20 +77,20 @@ class DrewControl(QWidget):
         #####################################
         # Control zone
         # Power
-        self.textPower = dataMenu("Power", "%")
+        self.textPower = dataMenu("Power", "%", parent=self)
         self.textPower.setFixedWidth(100,70,15)
         self.textPower.setReadOnly(False)
         #self.textPower.setInputMask("000")
         self.textPower.connect(self.set_power)
 
         # Temp consigne
-        self.textTempConsigne = dataMenu("Consigne", "°C")
+        self.textTempConsigne = dataMenu("Consigne", "°C", parent=self)
         self.textTempConsigne.setFixedWidth(100,70,20)
         self.textTempConsigne.setReadOnly(False)
         self.textTempConsigne.connect(self.set_cmdtemp)
 
         # Measure Temp
-        self.textTempMesure = dataMenu("Measure", "°C")
+        self.textTempMesure = dataMenu("Measure", "°C", parent=self)
         self.textTempMesure.setFixedWidth(100,70,20)
         self.textTempMesure.setReadOnly(True)
         
@@ -95,39 +105,37 @@ class DrewControl(QWidget):
         # Bme zone
         # Control zone
         # bme temp
-        self.textBmeTemp = dataMenu("envTemp", "°C")
+        self.textBmeTemp = dataMenu("envTemp", "°C", parent=self)
         self.textBmeTemp.setFixedWidth(100,70,20)
         self.textBmeTemp.setReadOnly(True)
-        #self.textBmeTemp.setInputMask("000")
 
         # Bme Hmidity
-        self.textHumidity = dataMenu("Humidity", "%")
-        self.textHumidity.setFixedWidth(100,70,15)
+        self.textHumidity = dataMenu("Humidity", "%", parent=self)
+        self.textHumidity.setFixedWidth(100,70,20)
         self.textHumidity.setReadOnly(True)
 
         # Temp Rosee
-        self.textRosee = dataMenu("TempRosee", "°C")
+        self.textRosee = dataMenu("TempRosee", "°C", parent=self)
         self.textRosee.setFixedWidth(100,70,20)
         self.textRosee.setReadOnly(True)
 
         # Set defauls
-        self.set_buttonRoseeConsigneOff()
-        self.set_buttonAsservOff()
-        self.set_togglebuttonAsservText()
+        self.set_togglebuttonRoseeConsigne(False)
+        self.set_togglebuttonAsserv(False)
         self.textTempMesure.setText("10")
         self.textTempConsigne.setText("10")
 
         #####################################
         # Pid zone
-        self.textKp = dataMenu("Kp", "[0-100]")
+        self.textKp = dataMenu("Kp", "[0-100]", parent=self)
         self.textKp.setFixedWidth(100,70,120)
         self.textKp.setReadOnly(False)
 
-        self.textKi = dataMenu("Ki", "[0-100]")
+        self.textKi = dataMenu("Ki", "[0-100]", parent=self)
         self.textKi.setFixedWidth(100,70,120)
         self.textKi.setReadOnly(False)
 
-        self.textKd = dataMenu("Kd", "[0-100]")
+        self.textKd = dataMenu("Kd", "[0-100]", parent=self)
         self.textKd.setFixedWidth(100,70,120)
         self.textKd.setReadOnly(False)
 
@@ -146,7 +154,6 @@ class DrewControl(QWidget):
         forthCol.addWidget(self.textKd)        
 
         # Layout
-
         allLayout = QHBoxLayout()
         allLayout.setSpacing(0)
         allLayout.addLayout(firstCol)
@@ -158,11 +165,17 @@ class DrewControl(QWidget):
         title.setAlignment(Qt.AlignCenter)
         title.adjustSize()
 
-        allLayoutTite = QVBoxLayout()
+        allLayoutTite = QVBoxLayout(self)
         allLayoutTite.addWidget(title)
         allLayoutTite.addLayout(allLayout)
         self.setLayout(allLayoutTite)
         
+
+    def updateListTempSensor(self):
+        for tempId in self.AstraDrew.get_listTemp():
+            if not self.listTempAllreadySet[tempId]:
+                self.selTemp.addItem(tempId)
+                self.listTempAllreadySet[tempId]=True
 
 
     def set_textPowerReadOnly(self, val):
@@ -182,51 +195,26 @@ class DrewControl(QWidget):
         else:
             #print("self.AstraDrew.set_ratio(",ratio,")")
             self.AstraDrew.set_ratio(ratio)
-            self.set_buttonAsservOff()
 
     def set_cmdtemp(self):
         self.AstraDrew.set_cmdTemp(self.textTempConsigne.getText())
-        self.set_buttonRoseeConsigneOff()
 
-    def set_togglebuttonRoseeConsigneText(self):
-        if self.buttonRoseeConsigneOn:
-            self.toggle_buttonRoseeConsigne.setText("Consigne Temp auto")
-            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+    def set_togglebuttonRoseeConsigne(self, state):
+        self.buttonRoseeConsigneOn = state
+        if state:
             self.AstraDrew.set_asservTempRosee()
         else:
-            self.toggle_buttonRoseeConsigne.setText("Consigne Temp Manuel")
-            self.toggle_buttonRoseeConsigne.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             self.AstraDrew.unset_asservTempRosee()
 
-    def toggle_actionRoseeConsigne(self):
-        self.buttonRoseeConsigneOn = not(self.buttonRoseeConsigneOn)
-        self.set_togglebuttonRoseeConsigneText()
-
-    def set_buttonRoseeConsigneOff(self):
-        self.buttonRoseeConsigneOn = False
-        self.set_togglebuttonRoseeConsigneText()
-
-
-    def set_togglebuttonAsservText(self):
-        if self.buttonAsservOn:
-            self.toggle_buttonAsserv.setText("Auto is On Set Off")
-            self.toggle_buttonAsserv.setStyleSheet("background-color: #f75457; border: 1px solid black;")
+    def set_togglebuttonAsserv(self, state):
+        self.buttonAsservOn = state
+        if state:
             self.AstraDrew.startAserv()
         else:
-            self.toggle_buttonAsserv.setText("Auto is Off Set On")
-            self.toggle_buttonAsserv.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             if self.AstraDrew.isAserv():
                 self.AstraDrew.stopAserv()
                 self.AstraDrew.set_ratio(0)
             self.textPower.setText(str(self.AstraDrew.get_ratio()))
-
-    def toggle_actionAsserv(self):
-        self.buttonAsservOn = not(self.buttonAsservOn)
-        self.set_togglebuttonAsservText()
-
-    def set_buttonAsservOff(self):
-        self.buttonAsservOn = False
-        self.set_togglebuttonAsservText()
 
     def update_text_fields(self):
         if self.AstraDrew.get_autoUpdateKpKiKd():
@@ -262,7 +250,9 @@ class DrewControl(QWidget):
             self.textTempMesure.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         else:
             self.textTempMesure.setText(f"{tempsensor:+.1f}")
-            self.textTempMesure.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
+            self.textTempMesure.setStyleSheet("")
+
+        self.updateListTempSensor()
 
         tempbme=self.AstraDrew.get_bmeTemp()
         if tempbme == self.AstraDrew.TEMPUNAVAIL:
@@ -271,32 +261,32 @@ class DrewControl(QWidget):
             self.textHumidity.setText(f"N/A")
             self.textRosee.setText(f"N/A")
         else:
+            self.textBmeTemp.restaureStyleSheet()
             self.textBmeTemp.setText(f"{tempbme:+.1f}")
-            self.textBmeTemp.setStyleSheet("background-color: #3cbaa2; border: 1px solid black;")
             hum=self.AstraDrew.get_bmeHumidity()
             self.textHumidity.setText(f"{hum:+.1f}")
             rosee=self.AstraDrew.get_bmeTempRosee()
             self.textRosee.setText(f"{rosee:+.1f}")
 
-class MainWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+class MainPwmWindow(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.initUI()
 
 
     def initUI(self):
-        self.main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout(self)
         self.main_layout.setSpacing(0)
 
         self.widgets = []
         for name in ["AstraPwm1", "AstraPwm2"]:
-            wiget=DrewControl(name)
+            wiget=DrewControl(name, parent=self)
             self.widgets.append(wiget)
             self.main_layout.addWidget(wiget)
 
 
         self.setLayout(self.main_layout)
-        self.setWindowTitle('AstrAlim')
+        self.setWindowTitle('AstrAlimPwm')
 
 
         # Créer un timer pour mettre à jour tous les widgets toutes les secondes
@@ -309,9 +299,7 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
+    main_window = MainPwmWindow()
     main_window.show()
-
-
     sys.exit(app.exec_())
 
