@@ -41,5 +41,19 @@ END1
    echo "Need to reboot for a full operational pwm"
 fi
 
+if ! grep -q "AstrAlimPowerManagement" ${BOOTFILE} ; then
+    echo "L'option AstrAlimPowerManagement n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
+    cat >> ${BOOTFILE}  << "END1"
+
+# Begin AstrAlimPowerManagement  Outputs
+usb_max_current_enable=1
+PSU_MAX_CURRENT=5000
+# End AstrAlimPowerManagement Outputs
+
+END1
+   echo "Need to reboot for a full operational pwm"
+fi
+
+
 echo "End Installing bootConfig"
 
