@@ -193,10 +193,10 @@ class AstraIna:
             curtimeS=time.perf_counter()
             deltatimeS=curtimeS-self._lasttimeS
             if not self.ina219.current_overflow():
-                self._shuntVoltagemV = self.ina219.shunt_voltage()
-                self._voltageV = float(self.ina219.voltage())
-                self._currentmA = float(self.ina219.current())
-                self._powermW = float(self.ina219.power())
+                self._shuntVoltagemV = max(self.ina219.shunt_voltage(), 0.0)
+                self._voltageV = max(float(self.ina219.voltage()),0.0)
+                self._currentmA = max(float(self.ina219.current()), 0.0)
+                self._powermW = max(float(self.ina219.power()),0.0)
             energiemWS=self._powermW * deltatimeS
             self._energiemWS += energiemWS
             self._lasttimeS=curtimeS
