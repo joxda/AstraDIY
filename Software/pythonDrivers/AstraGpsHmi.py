@@ -52,15 +52,15 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
-        self.gpsLatitude:dataMenu = dataMenu(f"Lat.= ", "°", parent=self)
+        self.gpsLatitude:dataMenu = dataMenu(f" Lat.= ", "°", parent=self)
         self.gpsLatitude.setReadOnly(True)
         self.gpsLatitude.setStyleSheet("border: 1px solid black;") 
 
-        self.gpsLongitude:dataMenu = dataMenu(f"Long.= ", "°", parent=self)
+        self.gpsLongitude:dataMenu = dataMenu(f" Long.= ", "°", parent=self)
         self.gpsLongitude.setReadOnly(True)
         self.gpsLongitude.setStyleSheet("border: 1px solid black;") 
 
-        self.gpsAlt:dataMenu = dataMenu(f"Alt.= ", "m", parent=self)
+        self.gpsAlt:dataMenu = dataMenu(f" Alt.= ", "m", parent=self)
         self.gpsAlt.setReadOnly(True)
         self.gpsAlt.setStyleSheet("border: 1px solid black;")         
 
@@ -77,11 +77,11 @@ class MainGpsWindow(QWidget):
         self.ntpLabel.adjustSize()
         self.ntpLabel.setFixedHeight(40)
 
-        self.ntpTime:dataMenu = dataMenu(f"Ntp Time = ", " ", parent=self)
+        self.ntpTime:dataMenu = dataMenu(f" Ntp Time = ", " ", parent=self)
         self.ntpTime.setReadOnly(True)
         self.ntpTime.setStyleSheet("border: 1px solid black;") 
 
-        self.ntpprecision:dataMenu = dataMenu(f"SystemTime Precision = +/-", "uS", parent=self)
+        self.ntpprecision:dataMenu = dataMenu(f" SystemTime Precision = +/-", "uS", parent=self)
         self.ntpprecision.setReadOnly(True)
         self.ntpprecision.setStyleSheet("border: 1px solid black;") 
 
