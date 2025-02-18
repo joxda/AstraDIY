@@ -118,6 +118,12 @@ class AstraGps(threading.Thread):
 
     def gpsTimeStamp(self)->int:
         return self.timeStamp
+
+    def ntpTimeStampS(self)->int:
+        return self.ntpMonitor.utcTimeS
+
+    def ntpTimePrecisionUs(self)->float:
+        return self.ntpMonitor.calculateUncertaintyS()*1000.0*1000.0
     
     def printAll(self):
         print(f"GPS PPS Signal: {self.ppsSignal}")  

@@ -66,7 +66,7 @@ class MainGpsWindow(QWidget):
         self.main_layout.addWidget(self.gpsLabel, 0, 0)
         self.main_layout.addWidget(self.gpsSyncState, 1, 0)
         self.main_layout.addWidget(self.gpsPPSCount, 1, 1)
-        self.main_layout.addWidget(self.gpsLastTime, 2, 0, 1, 3)
+        self.main_layout.addWidget(self.gpsLastTime, 2, 0, 1, 2)
         self.main_layout.addWidget(self.gpsLatitude, 3, 0)
         self.main_layout.addWidget(self.gpsLongitude, 3, 1)
         self.main_layout.addWidget(self.gpsAlt, 3, 2)
@@ -80,8 +80,13 @@ class MainGpsWindow(QWidget):
         self.ntpTime.setReadOnly(True)
         self.ntpTime.setStyleSheet("border: 1px solid black;") 
 
-        self.main_layout.addWidget(self.ntpLabel, 4, 0,1, 3)
-        self.main_layout.addWidget(self.ntpTime, 4, 0,1, 3)
+        self.ntpprecision:dataMenu = dataMenu(f"SystemTime Precision = +/-", "uS", parent=self)
+        self.ntpprecision.setReadOnly(True)
+        self.ntpprecision.setStyleSheet("border: 1px solid black;") 
+
+        self.main_layout.addWidget(self.ntpLabel, 4, 0, 1, 3)
+        self.main_layout.addWidget(self.ntpTime, 5, 0, 1, 2)
+        self.main_layout.addWidget(self.ntpprecision, 6, 0, 1, 2)
 
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
@@ -99,6 +104,8 @@ class MainGpsWindow(QWidget):
         self.gpsLatitude.setText(f"{lat}")
         self.gpsLongitude.setText(f"{long}")
         self.gpsAlt.setText(f"{alt}")
+        self.ntpTime.setText(f"{self.gps.ntpTimeStampS()}")
+        self.ntpprecision.setText(f"{self.gps.ntpTimePrecisionUs()}")
 
   
 
