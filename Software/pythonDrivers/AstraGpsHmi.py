@@ -59,9 +59,9 @@ class MainGpsWindow(QWidget):
         self.timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
  
     def  update_text_fields(self):
-        self.gpsSyncState.setText(self.gps.gpsSyncState())
-        self.gpsLastTime.setText(self.gps.gpsTimeStamp())
-        self.gpsPPSCount.setText(self.gps.gpsCountPPS())
+        self.gpsSyncState.setText(f"{self.gps.gpsSyncState()}D")
+        self.gpsLastTime.setText(f"{self.gps.gpsTimeStamp()}")
+        self.gpsPPSCount.setText(f"{self.gps.gpsCountPPS()}")
   
 
     def closeEvent(self, event):
