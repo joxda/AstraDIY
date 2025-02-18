@@ -46,9 +46,9 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
-        self.main_layout.addWidget(self.gpsSyncState, 0, 0, 1, 3)
-        self.main_layout.addWidget(self.gpsLastTime, 1, 0)
-        self.main_layout.addWidget(self.gpsPPSCount, 1, 1)
+        self.main_layout.addWidget(self.gpsSyncState, 0, 0)
+        self.main_layout.addWidget(self.gpsPPSCount, 0, 1)
+        self.main_layout.addWidget(self.gpsLastTime, 1, 0, 1, 3)
          
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
