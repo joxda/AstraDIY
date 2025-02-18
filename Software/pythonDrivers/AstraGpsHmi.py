@@ -34,9 +34,9 @@ class MainGpsWindow(QWidget):
         self.main_layout.setSpacing(0)
 
         # Add QLabel at the top
-        self.GpsSyncState:dataMenu = dataMenu(" GpsSyncState = ", " ", parent=self)
-        self.GpsSyncState.setReadOnly(True)
-        self.GpsSyncState.setStyleSheet("border: 1px solid black;") 
+        self.gpsSyncState:dataMenu = dataMenu(" GpsSyncState = ", " ", parent=self)
+        self.gpsSyncState.setReadOnly(True)
+        self.gpsSyncState.setStyleSheet("border: 1px solid black;") 
 
         self.gpsLastTime:dataMenu = dataMenu(f" Time = ", " ", parent=self)
         self.gpsLastTime.setReadOnly(True)
@@ -46,13 +46,12 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
-        self.main_layout.addWidget(self.GpsSyncState, 0, 0)
+        self.main_layout.addWidget(self.gpsSyncState, 0, 0)
         self.main_layout.addWidget(self.gpsLastTime, 0, 1)
         self.main_layout.addWidget(self.gpsPPSCount, 0, 2)
          
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
-
 
         # Créer un timer pour mettre à jour tous les widgets toutes les secondes
         self.timer = QTimer()
@@ -60,7 +59,7 @@ class MainGpsWindow(QWidget):
         self.timer.start(1000)  # Met à jour toutes les 1000 millisecondes (1 seconde)
  
     def  update_text_fields(self):
-        self.GpsSyncState.setText(self.gps.gpsSyncState())
+        self.gpsSyncState.setText(self.gps.gpsSyncState())
         self.gpsLastTime.setText(self.gps.gpsTimeStamp())
         self.gpsPPSCount.setText(self.gps.gpsCountPPS())
   

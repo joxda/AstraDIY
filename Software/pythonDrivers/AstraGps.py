@@ -107,15 +107,18 @@ class AstraGps(threading.Thread):
             cls._AstraGps.stop()
 
 
-    def getPosition(self):
+    def gpsGetPosition(self):
         return self.lat, self.long, self.alt
     
-    def countPPS(self)->int:
+    def gpsCountPPS(self)->int:
         return self.ppsSignal
     
+    def gpsSyncState(self)->int:
+        return self.syncState
+
+    def gpsTimeStamp(self)->int:
+        return self.timeStamp
     
-
-
     def printAll(self):
         print(f"GPS PPS Signal: {self.ppsSignal}")  
         print(f"GPS Sync State: {self.fixMode} {self.syncState}") 
