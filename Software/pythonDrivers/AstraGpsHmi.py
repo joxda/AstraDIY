@@ -1,9 +1,10 @@
 #!/bin/env python3
 import sys
-import math
+import time
+
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QGridLayout
-from PyQt5.QtWidgets import  QLabel, QFrame
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout
+from PyQt5.QtWidgets import  QLabel
 from PyQt5.QtCore import Qt
 from AstraGps import AstraGps
 from AstraCommonHmi import dataMenu
@@ -104,7 +105,7 @@ class MainGpsWindow(QWidget):
         self.gpsLatitude.setText(f"{lat}")
         self.gpsLongitude.setText(f"{long}")
         self.gpsAlt.setText(f"{alt}")
-        self.ntpTime.setText(f"{self.gps.ntpTimeStampS()}")
+        self.ntpTime.setText(f"{time.ctime(self.gps.ntpTimeStampS())}")
         self.ntpprecision.setText(f"{self.gps.ntpTimePrecisionUs()}")
 
   
