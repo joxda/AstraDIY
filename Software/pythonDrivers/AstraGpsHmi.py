@@ -81,7 +81,7 @@ class MainGpsWindow(QWidget):
         self.ntpTime.setStyleSheet("border: 1px solid black;") 
 
         self.main_layout.addWidget(self.ntpLabel, 4, 0,1, 3)
-        self.ntpTime.addWidget(self.ntpLabel, 4, 0,1, 3)
+        self.main_layout.addWidget(self.ntpTime, 4, 0,1, 3)
 
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
