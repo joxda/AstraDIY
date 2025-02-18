@@ -113,7 +113,7 @@ class AstraGps(threading.Thread):
     def gpsCountPPS(self)->int:
         return self.ppsSignal
     
-    def gpsSyncState(self)->int:
+    def gpsSyncState(self)->str:
         return self.syncState
 
     def gpsTimeStamp(self)->int:

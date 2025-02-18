@@ -34,6 +34,11 @@ class MainGpsWindow(QWidget):
         self.main_layout.setSpacing(0)
 
         # Add QLabel at the top
+        self.gpsLabel = QLabel("Gps", self)  
+        self.gpsLabel.setAlignment(Qt.AlignCenter)
+        self.gpsLabel.adjustSize()
+        self.gpsLabel.setFixedHeight(self.height)
+
         self.gpsSyncState:dataMenu = dataMenu(" GpsSyncState = ", " ", parent=self)
         self.gpsSyncState.setReadOnly(True)
         self.gpsSyncState.setStyleSheet("border: 1px solid black;") 
@@ -46,9 +51,11 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
-        self.main_layout.addWidget(self.gpsSyncState, 0, 0)
-        self.main_layout.addWidget(self.gpsPPSCount, 0, 1)
-        self.main_layout.addWidget(self.gpsLastTime, 1, 0, 1, 3)
+        QLabel(self.label, self)
+        self.main_layout.addWidget(self.gpsLastTime, 0, 0)
+        self.main_layout.addWidget(self.gpsSyncState, 1, 0)
+        self.main_layout.addWidget(self.gpsPPSCount, 1, 1)
+        self.main_layout.addWidget(self.gpsLastTime, 2, 0, 1, 3)
          
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
