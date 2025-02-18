@@ -28,7 +28,7 @@ def formatEnergie(energie):
 class MainGpsWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.gps:AstraGps = AstraGps()
+        self.gps:AstraGps = AstraGps().get_instance()
         # Layout de type grille
         self.main_layout = QGridLayout()
         self.main_layout.setSpacing(0)
