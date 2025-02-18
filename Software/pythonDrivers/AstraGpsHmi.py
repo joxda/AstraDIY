@@ -51,11 +51,38 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
+        self.gpsLatitude:dataMenu = dataMenu(f"Lat.= ", "°", parent=self)
+        self.gpsLatitude.setReadOnly(True)
+        self.gpsLatitude.setStyleSheet("border: 1px solid black;") 
+
+        self.gpsLongitude:dataMenu = dataMenu(f"Long.= ", "°", parent=self)
+        self.gpsLongitude.setReadOnly(True)
+        self.gpsLongitude.setStyleSheet("border: 1px solid black;") 
+
+        self.gpsAlt:dataMenu = dataMenu(f"Alt.= ", "m", parent=self)
+        self.gpsAlt.setReadOnly(True)
+        self.gpsAlt.setStyleSheet("border: 1px solid black;")         
+
         self.main_layout.addWidget(self.gpsLabel, 0, 0)
         self.main_layout.addWidget(self.gpsSyncState, 1, 0)
         self.main_layout.addWidget(self.gpsPPSCount, 1, 1)
         self.main_layout.addWidget(self.gpsLastTime, 2, 0, 1, 3)
-         
+        self.main_layout.addWidget(self.gpsLatitude, 3, 0)
+        self.main_layout.addWidget(self.gpsLongitude, 3, 1)
+        self.main_layout.addWidget(self.gpsAlt, 3, 2)
+        
+        self.ntpLabel = QLabel("Ntp", self)  
+        self.ntpLabel.setAlignment(Qt.AlignCenter)
+        self.ntpLabel.adjustSize()
+        self.ntpLabel.setFixedHeight(40)
+
+        self.ntpTime:dataMenu = dataMenu(f"Ntp Time = ", " ", parent=self)
+        self.ntpTime.setReadOnly(True)
+        self.ntpTime.setStyleSheet("border: 1px solid black;") 
+
+        self.main_layout.addWidget(self.ntpLabel, 4, 0,1, 3)
+        self.ntpTime.addWidget(self.ntpLabel, 4, 0,1, 3)
+
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
 
@@ -68,6 +95,11 @@ class MainGpsWindow(QWidget):
         self.gpsSyncState.setText(f"{self.gps.gpsSyncState()}D")
         self.gpsLastTime.setText(f"{self.gps.gpsTimeStamp()}")
         self.gpsPPSCount.setText(f"{self.gps.gpsCountPPS()}")
+        lat, long, alt = self.gps.gpsGetPosition()
+        self.gpsLatitude.setText(f"{lat}")
+        self.gpsLongitude.setText(f"{long}")
+        self.gpsAlt.setText(f"{alt}")
+
   
 
     def closeEvent(self, event):

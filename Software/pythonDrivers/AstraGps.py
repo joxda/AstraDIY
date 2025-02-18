@@ -76,15 +76,15 @@ class AstraGps(threading.Thread):
         self.fetchPeriodS=fetchPeriodS
 
         # Gps Data
-        self.ppsSignal = 0
+        self.ppsSignal:int = 0
         # Fix Mode
-        self.fixMode=0
-        self.syncState = "No Fix"
+        self.fixMode:int=0
+        self.syncState:str = "No Fix"
         # Time
-        self.timeStamp=0
-        self.lat=0
-        self.long=0
-        self.alt=0
+        self.timeStamp:float=0
+        self.lat:float=0
+        self.long:float=0
+        self.alt:float=0
 
     
         self.dispersionuS:float = 0
