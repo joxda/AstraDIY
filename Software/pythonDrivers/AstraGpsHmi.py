@@ -102,11 +102,11 @@ class MainGpsWindow(QWidget):
         self.gpsLastTime.setText(f"{self.gps.gpsTimeStamp()}")
         self.gpsPPSCount.setText(f"{self.gps.gpsCountPPS()}")
         lat, long, alt = self.gps.gpsGetPosition()
-        self.gpsLatitude.setText(f"{lat}")
-        self.gpsLongitude.setText(f"{long}")
-        self.gpsAlt.setText(f"{alt}")
+        self.gpsLatitude.setText(f"{lat:.3f}")
+        self.gpsLongitude.setText(f"{long:.3f}")
+        self.gpsAlt.setText(f"{alt:.3f}")
         self.ntpTime.setText(f"{time.ctime(self.gps.ntpTimeStampS())}")
-        self.ntpprecision.setText(f"{self.gps.ntpTimePrecisionUs()}")
+        self.ntpprecision.setText(f"{self.gps.ntpTimePrecisionUs():.3f}")
 
   
 
