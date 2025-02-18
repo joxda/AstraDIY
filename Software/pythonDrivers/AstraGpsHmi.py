@@ -37,7 +37,7 @@ class MainGpsWindow(QWidget):
         self.gpsLabel = QLabel("Gps", self)  
         self.gpsLabel.setAlignment(Qt.AlignCenter)
         self.gpsLabel.adjustSize()
-        self.gpsLabel.setFixedHeight(self.height)
+        self.gpsLabel.setFixedHeight(40)
 
         self.gpsSyncState:dataMenu = dataMenu(" GpsSyncState = ", " ", parent=self)
         self.gpsSyncState.setReadOnly(True)
