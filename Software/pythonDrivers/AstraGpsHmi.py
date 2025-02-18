@@ -51,7 +51,6 @@ class MainGpsWindow(QWidget):
         self.gpsPPSCount.setReadOnly(True)
         self.gpsPPSCount.setStyleSheet("border: 1px solid black;") 
 
-        QLabel(self.label, self)
         self.main_layout.addWidget(self.gpsLabel, 0, 0)
         self.main_layout.addWidget(self.gpsSyncState, 1, 0)
         self.main_layout.addWidget(self.gpsPPSCount, 1, 1)
