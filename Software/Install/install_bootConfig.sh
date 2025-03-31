@@ -4,15 +4,9 @@ echo "Begin Installing bootconfig"
 
 BOOTFILE=/boot/firmware/config.txt
 
-if ! grep -q "dtparam=i2c_arm=on" ${BOOTFILE} ; then
-    echo "L'option dtparam=i2c_arm=on n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
-    cat >> ${BOOTFILE}  << "END1"
-
-# Begin AstrAlim I2c enable
-dtparam=i2c_arm=on
-# End AstrAlim I2c Enable
-
-END1
+if ! egrep -q -e "^dtparam=i2c_arm=on" ${BOOTFILE} ; then
+   echo "L'option dtparam=i2c_arm=on n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
+   sudo sed -i '/^#dtparam=i2c_arm=on/s/^#//'
    echo "Need to reboot for a full operational temperature sensor"
 fi
 
