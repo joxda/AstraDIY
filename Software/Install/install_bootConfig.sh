@@ -6,7 +6,7 @@ BOOTFILE=/boot/firmware/config.txt
 
 if ! egrep -q -e "^dtparam=i2c_arm=on" ${BOOTFILE} ; then
    echo "L'option dtparam=i2c_arm=on n'est pas dans le fichier /boot/firmware/config.txt. Ajout en cours..."
-   sudo sed -i '/^#dtparam=i2c_arm=on/s/^#//'
+   sudo sed -i '/^#dtparam=i2c_arm=on/s/^#//' ${BOOTFILE}
    echo "Need to reboot for a full operational temperature sensor"
 fi
 
