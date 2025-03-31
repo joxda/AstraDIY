@@ -57,7 +57,7 @@ class DrewControl(QWidget):
             defaultIndex=0
 
         if defaultIndex == 0:
-            self.selTemp.addItem(curtempname)
+            self.selTemp.addItem(str(curtempname))
             self.listTempAllreadySet[curtempname]=True
 
         self.selTemp.setCurrentIndex(defaultIndex)
