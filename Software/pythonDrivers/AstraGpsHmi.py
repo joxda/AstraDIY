@@ -92,7 +92,7 @@ class MainGpsWindow(QWidget):
         self.main_layout.addWidget(self.ntpLabel, 4, 0, 1, 3)
         self.main_layout.addWidget(self.ntpTime, 5, 0, 1, 3)
         self.main_layout.addWidget(self.ntpprecision, 6, 0, 1, 3)
-        self.main_layout.addWidget(self.offset, 6, 0, 1, 3)
+        self.main_layout.addWidget(self.offset, 7, 0, 1, 3)
 
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
