@@ -6,6 +6,7 @@ mkdir -p $TARGETDIR
 rm -f $TARGETDIR/Astra*.desktop
 #cp ${FILESOURCE}/autostart/*.desktop $TARGETDIR
 cp ${FILESOURCE}/autostart/AstraDIYHmi.desktop $TARGETDIR
+cp ${FILESOURCE}/autostart/AstraGpsHmi.desktop $TARGETDIR
 
 echo "End Installing Auto-Start Astra Hmi"
 
