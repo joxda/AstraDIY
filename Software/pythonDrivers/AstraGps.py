@@ -50,10 +50,13 @@ class NTPMonitor:
             return stdev(self.offsetsS)
         return 0
     
+    def calculateMeanOffsetS(self)->float:
+        return abs(mean(self.offsetsS))
+    
     def calculateUncertaintyS(self)->float:
         if not self.offsetsS or not self.delaysS:
             return float('inf')  # Retourne une incertitude infinie si aucune donnée n'est disponible
-        return  abs(mean(self.offsetsS)) + self.calculateDispersionS() + self.calculateJitterS()
+        return  self.calculateMeanOffsetS() + self.calculateDispersionS() + self.calculateJitterS()
 
     def printAll(self):
         print(f"NTP Date {time.ctime(self.utcTimeS)}")
@@ -139,7 +142,10 @@ class AstraGps(threading.Thread):
 
     def ntpTimePrecisionUs(self)->float:
         return self.ntpMonitor.calculateUncertaintyS()*1000.0*1000.0
-    
+
+    def ntpTimeOffsetUs(self)->float:
+        return self.ntpMonitor.calculateMeanOffsetS()*1000.0*1000.0
+
     def printAll(self):
         print(f"GPS PPS Signal: {self.ppsSignal}")  
         print(f"GPS Sync State: {self.fixMode} {self.syncState}") 

@@ -85,9 +85,14 @@ class MainGpsWindow(QWidget):
         self.ntpprecision.setReadOnly(True)
         self.ntpprecision.setStyleSheet("border: 1px solid black;") 
 
+        self.offset:dataMenu = dataMenu(f" Offset = +/-", "uS", parent=self)
+        self.offset.setReadOnly(True)
+        self.offset.setStyleSheet("border: 1px solid black;") 
+
         self.main_layout.addWidget(self.ntpLabel, 4, 0, 1, 3)
         self.main_layout.addWidget(self.ntpTime, 5, 0, 1, 3)
         self.main_layout.addWidget(self.ntpprecision, 6, 0, 1, 3)
+        self.main_layout.addWidget(self.offset, 6, 0, 1, 3)
 
         self.setLayout(self.main_layout)
         self.setWindowTitle('Gps')
@@ -107,6 +112,7 @@ class MainGpsWindow(QWidget):
         self.gpsAlt.setText(alt)
         self.ntpTime.setText(f"{time.ctime(self.gps.ntpTimeStampS())}")
         self.ntpprecision.setText(f"{self.gps.ntpTimePrecisionUs():.3f}")
+        self.offset.setText(f"{self.gps.ntpTimeOffsetUs():.3f}")
 
   
 
