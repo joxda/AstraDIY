@@ -6,8 +6,8 @@ DEVICES="/dev/ttyAMA0"
 START_DAEMON="true"
 
 # Other options you want to pass to gpsd
-GPSD_OPTIONS="-n -b "
-#GPSD_OPTIONS="-n -b -s 115200"
+#GPSD_OPTIONS="-n -b "
+GPSD_OPTIONS="-n -b -s 115200"
 #GPSD_OPTIONS="-n -b -s 57600"
 GPSD_SOCKET="/var/run/gpsd.sock"
 
