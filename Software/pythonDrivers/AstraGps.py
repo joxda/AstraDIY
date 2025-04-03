@@ -110,6 +110,21 @@ class AstraGps(threading.Thread):
     def gpsGetPosition(self):
         return self.lat, self.long, self.alt
     
+    def gpsGetStrPosition(self):
+        try:
+            lat=f"{self.lat:.3f}"
+        except:
+            lat="N/A"
+        try:
+            long=f"{self.long:.3f}"
+        except:
+            long="N/A"
+        try:
+            alt=f"{self.alt:.3f}"
+        except:
+            alt="N/A"
+        return lat, long, alt
+        
     def gpsCountPPS(self)->int:
         return self.ppsSignal
     
