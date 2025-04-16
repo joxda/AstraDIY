@@ -73,7 +73,7 @@ class NTPMonitor:
 class AstraGps(threading.Thread):
     _AstraGps=None
 
-    def __init__(self, fetchPeriodS:float=5):
+    def __init__(self, fetchPeriodS:float=0.5):
         super().__init__()
         self.running = True
         self.fetchPeriodS=fetchPeriodS
@@ -157,10 +157,11 @@ class AstraGps(threading.Thread):
         print(f"System Time: {self.current_time} +/- {self.time_error_margin*1000.0:.3e} ms")
 
     def run(self):
+        # Set up the GPS session in streaming mode
+        session = gps(mode=WATCH_ENABLE | WATCH_JSON)
+
         while self.running:
             try:
-                # Set up the GPS session in streaming mode
-                session = gps(mode=WATCH_ENABLE | WATCH_JSON)
                 # Wait for the next GPS report (blocking call)
                 report = session.next()
                 # Handle different types of GPS reports
