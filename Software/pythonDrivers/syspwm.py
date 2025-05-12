@@ -36,7 +36,7 @@ class SysPWM(object):
         #print("Ori='"+self.pwmdir+"'new='"+self.pwmdir2+"'")
         if not self.overlay_loaded():
             print("On="+self.chippath)
-            raise SysPWMException("Need to add 'dtoverlay=pwm-2chan' to /boot/config.txt and reboot")
+            raise SysPWMException("Need to add 'dtoverlay=pwm-2chan' to /boot/firmware/config.txt and reboot")
         if not self.export_writable():
             raise SysPWMException("Need write access to files in '{chippath}'".format(chippath=self.chippath))
         if not self.pwmX_exists():

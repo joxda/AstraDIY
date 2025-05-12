@@ -181,6 +181,12 @@ class AstraIna:
                 shunt_adc=self.shunt_adc)
             self.configurationSend = True            
         
+    def getPingOK(self)->bool:
+        """
+        Return the last ping status.
+        """
+        return self.pingOk
+    
     def getDataFromIna(self):
         """
         Do the INA iteraction.
