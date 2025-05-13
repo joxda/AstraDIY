@@ -91,6 +91,10 @@ class ina219Frame(QFrame):
         self.textCurrentA.setText(f"{self.ina219.currentA():+.3f}")
         self.textPowerW.setText(f"{self.ina219.powerW():+.3f}")
         self.textEnergieWH.setText(formatEnergie(self.ina219.energieWS()/3600))
+        if self.ina219.getPingOK():
+            self.intPeriod.setStyleSheet("")
+        else:
+            self.intPeriod.setStyleSheet("background-color: #f75457; border: 1px solid black;")
         self.intPeriod.setText(f"{intPeriodh:2d}:{intPeriodm:2d}:{intPeriods:2d}")
 
 
