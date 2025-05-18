@@ -23,17 +23,13 @@ class SysPWMException(Exception):
 
 # /sys/ pwm interface described here: http://www.jumpnowtek.com/rpi/Using-the-Raspberry-Pi-Hardware-PWM-timers.html
 class SysPWM(object):
-
-    chippath1 = "/sys/class/pwm/pwmchip2"
-    chippath2 = "/sys/class/pwm/pwmchip"
+    chippath = "/sys/class/pwm/pwmchip"
 
     def __init__(self,chip,pwm):
         self.retry=5
         self.pwm=pwm
-        self.chippath="{chippath}{num}".format(chippath=self.chippath2, num=chip)
+        self.chippath="{chippath}{num}".format(chippath=self.chippath, num=chip)
         self.pwmdir="{chippath}/pwm{pwm}".format(chippath=self.chippath, pwm=self.pwm)
-        self.pwmdir2="{chippath}{num}/pwm{pwm}".format(chippath=self.chippath2, num=str(chip), pwm=self.pwm)
-        #print("Ori='"+self.pwmdir+"'new='"+self.pwmdir2+"'")
         if not self.overlay_loaded():
             print("On="+self.chippath)
             raise SysPWMException("Need to add 'dtoverlay=pwm-2chan' to /boot/firmware/config.txt and reboot")

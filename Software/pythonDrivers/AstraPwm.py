@@ -145,25 +145,60 @@ class AstraTempFetcher(threading.Thread):
     def isPresent_bme(self):
         return self.bme_present
 
+class RaspberryPiModel:
+    def __init__(self):
+        self.compatible_strings = self._read_compatible_strings()
 
+    def _read_compatible_strings(self):
+        try:
+            with open('/proc/device-tree/compatible', 'r') as file:
+                return file.read().split('\x00')
+        except FileNotFoundError:
+            return []
+
+    def getModelNumber(self):
+        for string in self.compatible_strings:
+            if string.startswith('raspberrypi,'):
+                # Extract the model number from the string
+                model_number = string.split(',')[1].split('-')[0]
+                return model_number
+        return "Unknown Model"
+    
+    def getPi(self):
+        """
+        Return the string pi followd by the number of the pi. (E.g.: pi4)
+        """
+
+        return f"pi{self.getModelNumber()}"
+    
 class AstraPwm():
     ROSEEUNAVAIL=AstraTempFetcher.ROSEEUNAVAIL
     TEMPUNAVAIL=AstraTempFetcher.TEMPUNAVAIL
     astraGpioSet = { 
-                "AstraPwm1": {"chip":2, "pwm":1},
-                "AstraPwm2": {"chip":2, "pwm":2}
+                "AstraPwm1": {
+                    "pi5": { "chip":2, "pwm":1 },
+                    "pi4": { "chip":0, "pwm":0 },
+                              },
+                "AstraPwm2": {
+                    "pi5": { "chip":2, "pwm":2 },
+                    "pi4": { "chip":0, "pwm":1 },
+                }
     }
+
     def __init__(self, name, MinTemp=0, MaxTemp=20):
         self.name = name
+        self.piModel=RaspberryPiModel().getPi()
         if name in self.astraGpioSet :
-            self.inacaract=self.astraGpioSet[self.name]
+            if self.piModel in self.astraGpioSet[self.name]:
+                self.inacaract=self.astraGpioSet[self.name][self.piModel]
+            else:
+                raise Exception(f"Not compatible pi model : {self.piModel}")
         else:
             raise Exception("Unkown AstraGpio")
 
 
         self.ratio=0
         self.period_ms=1
-        #print("Init pwm:",self.inacaract["chip"],self.inacaract["pwm"])
         self.pwm = SysPWM(self.inacaract["chip"],self.inacaract["pwm"])
         if self.pwm.get_periode_ms() > 0:
             self.pwm.set_duty_ms(0)
@@ -414,6 +449,8 @@ if __name__ == '__main__':
     import signal
     import sys
 
+    
+    print(f"Running on : {RaspberryPiModel().getPi()}")
   
     astrapwm1=AstraPwm("AstraPwm1")
     astrapwm2=AstraPwm("AstraPwm2")
